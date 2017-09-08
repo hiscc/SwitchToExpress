@@ -1,0 +1,23 @@
+
+<h2>Switching to express</h2>
+<h3>Add a post</h3>
+
+  <% if(post !== undefined) { %>
+  <form method="post">
+  <label for="Title">Title
+    <input type="text" name="title" value="<%= post.title %>">
+  </label>
+  <label for="Body">Body
+    <input type="text" name="body" value="<%= post.body %>">
+  </label>
+  <% }else{ %>
+  <form method="post" action="/add">
+  <label for="Title">Title
+    <input type="text" name="title">
+  </label>
+  <label for="Body">Body
+    <input type="text" name="body">
+  </label>
+  <% } %>
+  <button type="submit" name="button">Add a post</button>
+</form>

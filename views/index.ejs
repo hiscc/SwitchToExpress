@@ -1,0 +1,9 @@
+
+
+<ul>
+  <% posts.forEach((post) => { %>
+    <li>Title: <%= post.title %> Body: <%= post.body %> <a href="/<%= post._id %>/delete">Delete</a> | <a href="/<%= post._id %>/update">Update</a></li>
+  <% }) %>
+</ul>
+
+<%- include form %>
