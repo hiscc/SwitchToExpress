@@ -5,7 +5,6 @@ var Post = require('../models/post')
 
 router.get('/', (req, res) => {
   Post.find({}, (err, data) => {
-    console.log(data)
     res.render('index', {posts: data, post: undefined})
   })
 

@@ -1,7 +1,7 @@
 module.exports = function(req, res, next){
-  if (req.session.user) {
+  if (req.session.user || req.path == '/' || req.isAuthenticated()) {
     next()
   } else {
-    res.render('login', {message: 'please login'})
+    res.redirect('/user/login')
   }
 }

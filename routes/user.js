@@ -1,7 +1,7 @@
 var express = require('express')
 var router = express.Router()
 var User = require('../models/user')
-
+var passport = require('passport')
 /* GET users listing. */
 router
   .get('/login', (req, res) => {
@@ -17,18 +17,19 @@ router
       if (!user) {
         res.render('login', {message: 'user does not exist'})
       } else {
-        if (user.password !== password) {
-          res.render('login', {message: 'wrong password'})
-        } else {
+        if (user.password === password) {
           req.session.user = user
           console.log(req.session);
-
           res.redirect('/posts')
+        } else {
+          res.render('login', {message: 'wrong password'})
         }
       }
     })
   })
-
+  .get('/profile', (req, res) => {
+    res.render('profile',{user: req.user})
+  })
   .get('/signup', (req, res) => {
     res.render('login', {message: 'please signup'})
   })
@@ -40,9 +41,15 @@ router
         if (user) {
           res.render('login', {message: 'user exist'})
         } else {
-          User.create({name: req.body.name, password: req.body.password}, (err, user) => {
-            req.session.user = user
-            res.redirect('/posts')
+          let newUser = new User({name: req.body.name, password: req.body.password})
+          newUser.save((err) => {
+            if (err) {
+              console.log(err);
+              res.render('login', {message: 'db can not save'})
+            } else {
+                req.session.user = newUser
+                res.redirect('/posts')
+            }
           })
         }
       })
@@ -50,8 +57,13 @@ router
   })
 
   .get('/logout', (req, res) => {
+    req.logout()
     req.session.destroy(() => {
-      res.redner('login', {message: 'logout'})
+      res.render('login', {message: 'logout'})
     })
   })
+
+
+
+
 module.exports = router;

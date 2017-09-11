@@ -2,8 +2,8 @@
 
 <ul>
   <% posts.forEach((post) => { %>
-    <li>Title: <%= post.title %> Body: <%= post.body %> <a href="/<%= post._id %>/delete">Delete</a> | <a href="/<%= post._id %>/update">Update</a></li>
+    <li>Title: <%= post.title %> Body: <%= post.body %> <a href="/posts/<%= post._id %>/delete">Delete</a> | <a href="/posts/<%= post._id %>/update">Update</a></li>
   <% }) %>
 </ul>
-
+<a href="/user/logout">Logout</a>
 <%- include form %>
