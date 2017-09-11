@@ -2,170 +2,204 @@
 
 本项目将基于 Express 从零开始搭建一个功能完备的博客系统
 
-在本节我们主要实现 Express 基本的操作
+在本节我们主要实现登录权限的基本操作
 
-1. 搭建基本的后端服务器  
-1. 理解基本的 nodejs 中间件
-1. 文章模型的 CRUD
-1. 熟练后端模版引擎 ejs 的操作
+1. 使用 express-session 、cookie-parse 实现本地用户登录
+1. 理解基本的登录原理
+
 
 ### 基本构造
 
-此次我们将直接使用 [express 生成器](http://www.expressjs.com.cn/starter/generator.html) 来启动项目, 然后对起进行改造。
+
 
 本节需要用到的中间件：
 
-1. express  -- 后端框架
-1. body-parser  -- 解析表单数据
-1. mongoose  -- 简化数据库操作
-1. path  -- 路径修正工具
-1. ejs  -- 后端模版解析
-1. lru-cache  -- 模版缓存
+1. express-session  -- session 管理
+1. cookie-parse  -- cookie 解析
 
-### 构建服务器
 
-我们使用 express 生成器直接生成项目
 
-先安装
+### session 登录一般原理
 
-``$ npm install express-generator -g``
+利用 ``session`` 我们可以给路由授权， 保护那些需要登录后才能请求到的视图。 ``session`` 基于浏览器端的 ``cookie`` 存储。我们在登录账号后， 通过在 ``session`` 中保存用户信息来告诉浏览器用户有没有登录， 并通过用户信息来判断该用户所拥有的权限。 在本节中我们将实现这样的验证机制： 用户在注册登录后便可以修改文章信息， 而非登录用户只能浏览文章。
 
-再生成
+首先安装
 
-``$ express SwitchToExpress``
+``$ npm install express-session cookie-parse  --save``
 
-修改 ``package.json`` 文件， 添加列表中的中间件
+因为需要用户登录， 所以我们需要创建用户模型。 在 ``models`` 文件夹下创建 ``user.js``
 
-``$ cd SwitchToExpress && npm install --save``
-
-基本完成， 这时我们打开 ``app.js`` 来搭建服务器
 
 ```` js
+// models/user.js
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema()
+var bcrypt   = require('bcrypt-nodejs')
+
+const userSchema = mongoose.Schema({
+  name: {
+    type: String,
+    require: true
+  },
+  password: String
+})
+
+userSchema.methods.generateHash = function(password) {
+    return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+};
+
+// checking if password is valid
+userSchema.methods.validPassword = function(password) {
+    return bcrypt.compareSync(password, this.local.password);
+};
+module.exports = mongoose.model('User', userSchema)
+
+````
+
+只关注 ``name`` 和 ``password`` 就好， 一般来说我们不会保存明文密码所以我们引入了 ``bcrypt-nodejs`` 中间件来对密码做加密。 在 ``user`` 模型上我们定义了两个方法一个加密另一个用来比对密码， 在把用户提交的密码信息放到数据库的时候我们会先用第一个方法来对密码加密然后保存， 在用户登录时我们需要第二个方法来比对密码。
+
+### 配置 session
+
+````js
 // app.js
-var express = require('express')
-var ejs = require('ejs')
-var LRU = require('lru-cache')
-var path = require('path')
 var cookieParser = require('cookie-parser')
+var session = require('express-session')
 
-var app = express()
-// ~~
-
-app.set('port', process.env.PORT || 3000)
-var port = app.get('port')
-app.listen(app.get('port'), () => {
-  console.log('server running on ' + port);
-})
+app.use(cookieParser('keyboard cat'))
+app.use(session({
+  secret: 'keyboard cat',
+  resave: true,
+  saveUninitialized: true,
+  cookie: { secure: false }}))
 ````
 
-然后启动 ``node app`` , 打开 ``loaclhost：3000``， 发现什么都没有！ 因为我们还未设置 ``路由（routes）`` 。 路由简单来讲就是网址和视图的对应关系。 因为 ``loaclhost：3000`` 对应我们的根路径 ``'/'`` ，而我们并没有设置当 express 服务器请求到跟路径时服务器需要对应的视图， 所以什么也不会显示。
+这样我们就可以把 ``session`` 放到 ``cookie`` 里使用了
 
-### 设置基本中间件
+### 设置用户注册登录路由
 
-````js
-// app.js
-
-// 设定模版引擎
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'ejs')
-ejs.cache = LRU(100);
-
-// 解析 req.body
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
-````
-
-### 设置文章模型
-
-我们需要连接数据库， 记得在你本地打开 ``mongodb`` 数据库, 然后我们在 ``app.js`` 中设置数据库的连接。
+有了 ``user`` 模型我们就可以执行登录注册操作了， 在 ``routes`` 下设立 ``user.js`` ， 需要一些基本的逻辑判断
 
 ````js
-// app.js
-var mongoose = require('mongoose')
-var db = mongoose.connection
-var uri = 'mongodb://localhost:27017/SwitchingToExpress'
-mongoose.connect(uri)
-db.once('open', () => {
-  console.log('mongodb connected');
-})
+// routes/user.js
 
-````
-
-OK， 数据库接好之后我们就可以创建相应的 Post 数据模型了， 我们基于 mongoose 创建类似对象的模型
-
-````js
-// app.js
-var postSchema = mongoose.Schema({
-  title: String,
-  body: String
-})
-var Post = mongoose.model('Post', postSchema)
-````
-
-超级简单， Post 模型结构有两个字段， title 和 body 类型是字符串。 postSchema 为模型结构， 真正的模型是 Post。
-
-### 设置基本路由
-
-我们开始设置我们第一个 ``路由（routes）``
-
-````js
-// app.js
-
-//在'/'路径下，我们将返回 index.ejs 模版， 因为在前面我们已经设置 ‘views’ 为视图路径所以这里不需要写成 render('views/index') 了， 后面的 posts 就是模版需要解析的数据， 具体内容可以查看 index.ejs
-
-app.get('/', (req, res) => {
-  Post.find({}, (err, data) => {
-    console.log(data)
-    res.render('index', {posts: data, post: undefined})
+var express = require('express')
+var router = express.Router()
+var User = require('../models/user')
+/* GET users listing. */
+router
+  .get('/login', (req, res) => {
+    res.render('login', {message: 'login'})
   })
-})
+  .post('/login', (req, res) => {
+    let name = req.body.name
+    let password = req.body.password
+    User.findOne({name: name}, (err, user) => {
+      if (err) {
+        res.render('login', {message: err})
+      }
+      if (!user) {
+        res.render('login', {message: 'user does not exist'})
+      } else {
+        if (user.password === password) {
 
-// 添加文章的路由， 对应 add.ejs 模版
-app.get('/add', (req, res) => {
-  res.sendFile(path.join(__dirname , 'views/add.html'))
-})
-
-// CRUD 的 C
-// 在表单内输入数据后发送到服务器的路由动作。 借助 body-parser， 我们可以轻松拿到表单里的数据 ，通过 req.body 便能取得提交的数据， 然后我们创建一个新的对象实例写入到数据库内
-
-app.post('/add', (req, res) => {
-  let title = req.body.title
-  let body = req.body.body
-  var post = new Post({title: title, body: body})
-  post.save((err) => {
-    if (err) {
-      res.json(err)
+            // 成功登录后我们设置 session
+          req.session.user = user
+          console.log(req.session);
+          res.redirect('/posts')
+        } else {
+          res.render('login', {message: 'wrong password'})
+        }
+      }
+    })
+  })
+  .get('/profile', (req, res) => {
+    res.render('profile',{user: req.user})
+  })
+  .get('/signup', (req, res) => {
+    res.render('login', {message: 'please signup'})
+  })
+  .post('/signup', (req, res) => {
+    if (!req.body.name || !req.body.password) {
+      res.render('login', {message: 'please enter name and password'})
+    } else {
+      User.findOne({name: req.body.name}, (err, user) => {
+        if (user) {
+          res.render('login', {message: 'user exist'})
+        } else {
+          let newUser = new User({name: req.body.name, password: req.body.password})
+          newUser.save((err) => {
+            if (err) {
+              console.log(err);
+              res.render('login', {message: 'db can not save'})
+            } else {
+              // 成功注册用户后我们设置 session ，这样即默认用户已登录
+                req.session.user = newUser
+                res.redirect('/posts')
+            }
+          })
+        }
+      })
     }
   })
-  res.redirect('/')
-})
 
-
-// CRUD 的 U
-//我们需要更改数据的视图， req.params.id 获取到文章 id 然后进行数据查询， 返回单个文章数据
-app.get('/:id/update', (req, res) => {
-  Post.findOne({_id: req.params.id}, (err, data) => {
-    err? console.log(err):  console.log('success');
-    res.render('form', {post: data})
+// 因为我们用 session 来查询用户的登录状态，所以注销即意味着清除 session
+  .get('/logout', (req, res) => {
+    req.session.destroy(() => {
+      res.render('login', {message: 'logout'})
+    })
   })
-})
 
-//在单个文章内，我们需要提交修改后的数据， 还是用 post 方法， 找到需要修改的数据然后传入新数据
-app.post('/:id/update', (req, res) => {
-  let title = req.body.title
-  let body = req.body.body
-  console.log(title, body);
-  Post.findOneAndUpdate({_id: req.params.id}, {title: title, body: body}, (err, data) => {
-    err? console.log(err): res.redirect('/')
-  })
-})
 
-// CRUD 的 D
-// 删除操作， 主要是通过 id 来查找到数据并执行删除
-app.get('/:id/delete', (req, res) => {
-  Post.remove({_id: req.params.id}, (err) => {
-    err? console.log(err): console.log('success delete');
-  })
-  res.redirect('/')
-})
+module.exports = router;
+
 ````
+
+OK， 路由弄好就可以设置视图了， 在 ``views`` 下设置视图 ``login.ejs``
+
+````js
+// views/ejs.js
+<h2>Login</h2>
+
+<% if(message) {  %>
+  <%= message %>
+<% }  %>
+
+<form class=""  method="post">
+  name: <input type="text" name="name"><br>
+  password: <input type="password" name="password">
+  <button type="submit" name="button">Login</button>
+</form>
+
+      <a href="/auth/github" class="btn btn-danger"><span class="fa fa-github"></span> Github</a>
+
+````
+
+### 用户登录过滤器
+
+我们需要一个函数来拦截那些未登录用户不能请求到的路由操作，例如更新、删除文章。 在 ``utilis`` 中创建 ``isLoggedIn.js``
+
+````js
+// utilis/isLoggedIn.js.js
+
+module.exports = function(req, res, next){
+  if (req.session.user || req.path == '/' || req.isAuthenticated()) {
+    next()
+  } else {
+    res.redirect('/user/login')
+  }
+}
+````
+ 我们将在 ``posts`` 路由中使用这个函数来过滤请求， 通过判断用户是否登录（req.session.user）来执行后续的操作。
+
+ 在 ``app.js`` 中加载所有路由
+
+ ````js
+ //app.js
+ var postCtl = require('./routes/post')
+ var userCtl = require('./routes/user')
+ var isLoggedIn = require('./utilis/isLoggedIn')
+
+ app.use('/user', userCtl)
+ app.use('/posts', isLoggedIn, postCtl)
+ ````
+这样 ``posts`` 下所有的路由都会经过 ``isLoggedIn`` 函数来进行权限的过滤。
