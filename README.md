@@ -203,3 +203,10 @@ module.exports = function(req, res, next){
  app.use('/posts', isLoggedIn, postCtl)
  ````
 这样 ``posts`` 下所有的路由都会经过 ``isLoggedIn`` 函数来进行权限的过滤。
+
+
+
+> 参考文章：
+
+
+> [ExpressJS - Authentication](https://www.tutorialspoint.com/expressjs/expressjs_authentication.htm)
