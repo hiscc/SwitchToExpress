@@ -1,16 +1,19 @@
 const mongoose = require('mongoose')
-const Schema = mongoose.Schema()
+const Schema = mongoose.Schema
 var bcrypt   = require('bcrypt-nodejs')
 
 const userSchema = mongoose.Schema({
+  // _id: Schema.Types.ObjectId,
   name: {
     type: String,
-    require: true
+    require: true,
+    unique: true
   },
   password: String,
+  posts: [{type: Schema.Types.ObjectId, ref: 'Post'}],
   github           : {
       id           : String,
-      profile        : String,
+      profile       : String,
       email        : String,
       username         : String
   }

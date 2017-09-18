@@ -204,9 +204,12 @@ module.exports = function(req, res, next){
  ````
 这样 ``posts`` 下所有的路由都会经过 ``isLoggedIn`` 函数来进行权限的过滤。
 
+****
 
+另外还有成熟的用户验证包如 passport，我在此节中用 passport 和 passport-github2 集成了一个 github 的 oauth2 验证，有兴趣的同学可以参考 config／passport.js  
 
 > 参考文章：
 
+> [Social Authentication in Node.js With Passport](http://mherman.org/blog/2015/09/26/social-authentication-in-node-dot-js-with-passport/#.WbkwsNMjHZo)
 
 > [ExpressJS - Authentication](https://www.tutorialspoint.com/expressjs/expressjs_authentication.htm)

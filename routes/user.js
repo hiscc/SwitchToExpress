@@ -27,9 +27,6 @@ router
       }
     })
   })
-  .get('/profile', (req, res) => {
-    res.render('profile',{user: req.user})
-  })
   .get('/signup', (req, res) => {
     res.render('login', {message: 'please signup'})
   })
@@ -59,10 +56,31 @@ router
   .get('/logout', (req, res) => {
     req.logout()
     req.session.destroy(() => {
-      res.render('login', {message: 'logout'})
+      res.render('login', {message: 'u have logout'})
     })
   })
-
+  .get('/', (req, res) => {
+    User.find({}, (err, data) => {
+      res.render('users', {users: data})
+    })
+  })
+  .get('/:id', (req, res) => {
+    if (req.session.user) {
+      res.render('profile', {user: req.session.user})
+    } else {
+      res.redirect('/users/login')
+    }
+  })
+  .get('/:id/posts', (req, res) => {
+    // User.findOne({name: req.params.id}).populate({path: 'posts', select: { title: 1 },  options: {sort: { title: -1 }}})
+    // .exec((err, doc) => {
+    //   var posts = doc.posts
+    //   res.render('index', {posts: posts, post: undefined})
+    // })
+    User.findOne({name: req.params.id}).populate('posts').exec((err,user) => {
+      res.json(user)
+    })
+  })
 
 
 

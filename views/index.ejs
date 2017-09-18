@@ -2,8 +2,13 @@
 
 <ul>
   <% posts.forEach((post) => { %>
-    <li>Title: <%= post.title %> Body: <%= post.body %> <a href="/posts/<%= post._id %>/delete">Delete</a> | <a href="/posts/<%= post._id %>/update">Update</a></li>
+    <li>Title: <%= post.title %> Body: <% post.body %>
+      auther: <% if(post.auther[0]){ %>
+        <%= post.auther[0].name %>
+            <% } %>
+       <a href="/posts/<%= post._id %>/delete">Delete</a> | <a href="/posts/<%= post._id %>/update">Update</a> <a href="/posts/<%= post._id %>">Detail</a></li>
   <% }) %>
 </ul>
-<a href="/user/logout">Logout</a>
+<a href="/users">users</a>
+<a href="/users/logout">Logout</a>
 <%- include form %>

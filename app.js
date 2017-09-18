@@ -24,21 +24,22 @@ var db = mongoose.connection
 var uri = 'mongodb://localhost:27017/SwitchingToExpress'
 mongoose.connect(uri)
 db.once('open', () => {
-  console.log('mongodb connected');
+  console.log('mongodb connected')
 })
+mongoose.Promise = global.Promise
 var app = express()
 
 // 设定模版引擎
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
-ejs.cache = LRU(100)
+// ejs.cache = LRU(100)
 
 // app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(logger('dev'))
 // 解析 req.body
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
-app.use(cookieParser('keyboard cat'))
+app.use(cookieParser())
 app.use(session({
   secret: 'keyboard cat',
   resave: true,
@@ -51,8 +52,8 @@ app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')))
 // app.use(express.static(path.join(__dirname, 'views')))
 
-app.use('/user', userCtl)
-app.use('/posts', isLoggedIn, postCtl)
+app.use('/users', userCtl)
+app.use('/posts',  postCtl)
 
 
 require('./config/passport')(passport)

@@ -1,0 +1,5 @@
+<% if(users){ %>
+  <% users.forEach((user) => { %>
+  <a href="/users/<%= user.name %>"><li><%= user.name %></li></a>
+  <%}) %>
+<% }%>

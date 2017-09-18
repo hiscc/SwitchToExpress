@@ -12,25 +12,37 @@
 
     <div class="page-header text-center">
         <h1><span class="fa fa-anchor"></span> Profile Page</h1>
-        <a href="/user/logout" class="btn btn-default btn-sm">Logout</a>
+        <a href="/users/logout" class="btn btn-default btn-sm">Logout</a>
     </div>
 
     <div class="row">
 
         <!-- GOOGLE INFORMATION -->
+
         <div class="col-sm-6">
             <div class="well">
-                <h3 class="text-danger"><span class="fa fa-github"></span> Github</h3>
+                <h3 class="text-danger"><span class="fa fa-people"></span> Profile</h3>
 
                     <p>
-                      <% if(user.github){  %>
-                        <strong>id</strong>: <%= user.github.id %><br>
-                        <strong>name</strong>: <%= user.github.username %><br>
-                        <strong>email</strong>: <%= user.github.email %><br>
-                        <strong>Github</strong>: <a href="<%= user.github.profile %>">GitHub</a>
+                      <% if(user){  %>
+                        <strong>name </strong>: <%= user.name %><br>
+                        <strong>password</strong>: <%= user.password %><br>
+                        <strong>posts</strong>: <%= user.posts[0] %><br>
                         <% }  %>
                     </p>
 
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="well">
+
+                <h3 class="text-danger"><span class="fa fa-github"></span> Github</h3>
+                <% if(user.github) {%>
+                <strong>username </strong>: <%= user.github.username %><br>
+                <strong>id</strong>: <%= user.github.id %><br>
+                <strong>email</strong>: <%= user.github.id %><br>
+                <strong>profile</strong>: <%= user.github.profile %><br>
+              <% } %>
             </div>
         </div>
 

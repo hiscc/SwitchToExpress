@@ -10,8 +10,9 @@
   <label for="Body">Body
     <input type="text" name="body" value="<%= post.body %>">
   </label>
+  
   <% }else{ %>
-  <form method="post" action="/add">
+  <form method="post" action="/posts/add">
   <label for="Title">Title
     <input type="text" name="title">
   </label>
