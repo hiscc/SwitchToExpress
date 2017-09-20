@@ -11,6 +11,7 @@ var passport = require('passport')
 
 var postCtl = require('./routes/post')
 var userCtl = require('./routes/user')
+var commentCtl = require('./routes/comment')
 var isLoggedIn = require('./utilis/isLoggedIn')
 
 
@@ -37,12 +38,12 @@ app.set('view engine', 'ejs')
 // app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 app.use(logger('dev'))
 // 解析 req.body
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(cookieParser())
 app.use(session({
-  secret: 'keyboard cat',
-  resave: true,
+  secret: 'keyboard ct',
+  resave: false,
   saveUninitialized: true,
   cookie: { secure: false }}))
 
@@ -54,7 +55,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/users', userCtl)
 app.use('/posts',  postCtl)
-
+app.use('/comments', commentCtl)
 
 require('./config/passport')(passport)
 

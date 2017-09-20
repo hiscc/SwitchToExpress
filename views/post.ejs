@@ -4,12 +4,16 @@
 
 comments:
 <% comments.forEach((comment) => { %>
-  <p>text: <%= comment.body %> whole: </p>
+  <p>text: <%# comment.body %> whole: <% if(comment.auther){ %>
+    <%= comment.auther.name %></p>
+    <% } %>
 <%}) %>
-<form class="" method="post" action="/posts/<%= post._id %>/comment">
-<label>add your comment</label><br>
-<textarea name="comment" required></textarea>
-   <button type="submit" name="button">add</button>
+<form class="" method="post" action="/comments/add">
+  <label for="Body">Body
+    <input type="text" name="body">
+  </label>
+    <input type="text" value="<%= post._id %>" name="id">
+  <button type="submit" name="button">Add a comment</button>
 </form>
 <hr>
 

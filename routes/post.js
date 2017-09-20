@@ -1,7 +1,7 @@
 var express = require('express')
 var router = express.Router()
 var Post = require('../models/post')
-var Comments = require('../models/comment')
+var Comment = require('../models/comment')
 var path = require('path')
 // router start
 
@@ -12,7 +12,6 @@ router.get('/', (req, res) => {
   // })
   Post.find().populate('auther').exec((err, posts) => {
     res.render('index', {posts: posts, post: undefined})
-    // res.json(posts[0])
   })
 
 })
@@ -35,43 +34,17 @@ router.post('/add', (req, res) => {
 })
 
 router.get('/:id', (req, res) => {
-  var post = Post.findOne({_id: req.params.id}).populate('auther comments', {_id: 1} ).exec()
+  var post = Post.findOne({_id: req.params.id}).populate('comments auther', {_id: 1} ).exec()
   post.then(post => {
-    var comms = Comments.find({post: post._id}, (err,comments) => {
-     res.render('post', {post: post, comments: comments})
+    var comms = Comment.find({post: post._id}).populate('auther').exec()
+    comms.then(comms => {
+      res.render('post', {post: post, comments: comms})
     })
-
     // res.json(post)
   })
 })
 
 
-router.post('/:id/comment', (req, res) => {
-  let text = req.body.comment
-  let auther = req.session.user
-   Post.findById(req.params.id, (err, post) => {
-    let comment = new Comments({body: text, post: post._id})
-    comment.save((err, comment) => {
-      if (err) {
-        res.json(err)
-        return
-      }
-      res.redirect('/posts/' + req.params.id)
-    })
-  })
-  // post.then(post => {
-  //   let comment = new Comments({body: text, post: post._id})
-  //   comment.save((err, comment) => {
-  //     if (err) {
-  //     res.json(err)
-  //     return
-  //     }
-  //     res.redirect('/posts/' + req.params.id)
-  //   })
-  // }, (fail) => {
-  //   res.json('fail')
-  // })
-})
 
 router.get('/:id/update', (req, res) => {
   Post.findOne({_id: req.params.id}, (err, data) => {

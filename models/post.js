@@ -6,7 +6,7 @@ var postSchema = mongoose.Schema({
   // _id: Schema.Types.ObjectId,
   title: String,
   body: String,
-  auther: [{type: Schema.Types.ObjectId, ref: 'User'}],
+  auther: {type: Schema.Types.ObjectId, ref: 'User'},
   comments: [{type: Schema.Types.ObjectId, ref: 'Comment'}]
 })
 
