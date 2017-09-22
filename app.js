@@ -12,6 +12,7 @@ var passport = require('passport')
 var postCtl = require('./routes/post')
 var userCtl = require('./routes/user')
 var commentCtl = require('./routes/comment')
+var tagCtl = require('./routes/tag')
 var isLoggedIn = require('./utilis/isLoggedIn')
 
 
@@ -56,6 +57,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/users', userCtl)
 app.use('/posts',  postCtl)
 app.use('/comments', commentCtl)
+app.use('/tags', tagCtl)
 
 require('./config/passport')(passport)
 

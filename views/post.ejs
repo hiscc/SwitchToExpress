@@ -1,18 +1,24 @@
-<h2><%= post.title %></h2>
-<p><%= post.body %></p>
+<h2 style="color: red">Title:  <%= post.title %></h2>
+<p style="color: #333">text: <%= post.body %></p>
 
 
 comments:
 <% comments.forEach((comment) => { %>
-  <p>text: <%# comment.body %> whole: <% if(comment.auther){ %>
-    <%= comment.auther.name %></p>
+  <p>text: <%= comment.body %> ||| whole: <% if(comment.auther){ %>
+    <%= comment.auther.name %>fdf</p>
+
+
     <% } %>
+    <a href="/comments/<%= comment._id %>/delete">Delete</a>
 <%}) %>
-<form class="" method="post" action="/comments/add">
+<hr>
+
+Add a comment
+<form class="" method="post" action="/comments/<%= post._id %>/add">
   <label for="Body">Body
     <input type="text" name="body">
   </label>
-    <input type="text" value="<%= post._id %>" name="id">
+    <!-- <input type="text" value="<%= post._id %>" name="id"> -->
   <button type="submit" name="button">Add a comment</button>
 </form>
 <hr>

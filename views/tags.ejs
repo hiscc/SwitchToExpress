@@ -1,0 +1,11 @@
+<% tags.forEach(tag => {%>
+  <li>Tag: <a href="/tags/<%= tag.name %>"><%= tag.name %></a>
+<ul>
+  <% tag.posts.forEach(post => {%>
+
+    Post<li>title: <%= post.title %> body: <%= post.body %></li>
+
+    <%}) %>
+  </ul>
+</li>
+<%}) %>
