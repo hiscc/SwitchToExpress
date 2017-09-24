@@ -1,6 +1,8 @@
 <h2 style="color: red">Title:  <%= post.title %></h2>
-<p style="color: #333">text: <%= post.body %></p>
-
+<p style="color: #333" id="text"><%= post.body %></p>
+<% tags.forEach(tag => {%>
+  <a href="/tags/<%= tag.name %>"><%= tag.name %></a>
+<%}) %>
 
 comments:
 <% comments.forEach((comment) => { %>
@@ -24,3 +26,14 @@ Add a comment
 <hr>
 
 <a href="/posts">Back to list</a>
+
+<script src="../javascripts/markdown.js" charset="utf-8"></script>
+<script type="text/javascript">
+// import {markdown} from 'markdown'
+console.log( markdown.toHTML( "Hello *World*!" ) )
+var $ = function(id){
+  return document.getElementById(id)
+}
+var a = $('text').firstChild.nodeValue
+$('text').innerHTML = markdown.toHTML( a )
+</script>

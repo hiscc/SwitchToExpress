@@ -2,214 +2,165 @@
 
 本项目将基于 Express 从零开始搭建一个功能完备的博客系统
 
-在本节我们主要实现登录权限的基本操作
+在本节我们主要实现各个模型间的基本操作
 
-1.  
-1. 理解基本的登录原理
-
+1. 增加 Comment 模型记录每篇 post 下的评论
+1. 增加 Tag 模型为 post 分类
 
 ### 基本构造
 
 
+#### mongoose 模型关系
+##### Comment 模型
+> 一篇 post 对应多条 comment， 每一条 comment 实例都指向同一篇 post 实例
 
-本节需要用到的中间件：
-
-1. express-session  -- session 管理
-1. cookie-parse  -- cookie 解析
-
-
-
-### session 登录一般原理
-
-利用 ``session`` 我们可以给路由授权， 保护那些需要登录后才能请求到的视图。 ``session`` 基于浏览器端的 ``cookie`` 存储。我们在登录账号后， 通过在 ``session`` 中保存用户信息来告诉浏览器用户有没有登录， 并通过用户信息来判断该用户所拥有的权限。 在本节中我们将实现这样的验证机制： 用户在注册登录后便可以修改文章信息， 而非登录用户只能浏览文章。
-
-首先安装
-
-``$ npm install express-session cookie-parse  --save``
-
-因为需要用户登录， 所以我们需要创建用户模型。 在 ``models`` 文件夹下创建 ``user.js``
+在 mongoose 内， 模型间的关系只通过 *id* 字段来索引。 例如， 我们需要为每篇 post 下添加 comment ， 在 comment 模型下只需要添加一个 post 字段来储存 comment 所制定的 post的 id 就可以了。
 
 
-```` js
-// models/user.js
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema()
-var bcrypt   = require('bcrypt-nodejs')
-
-const userSchema = mongoose.Schema({
-  name: {
-    type: String,
-    require: true
-  },
-  password: String
+````js
+//models/comments.js
+var commentSchema = mongoose.Schema({
+  body: {type: String},
+  auther: {type: Schema.Types.ObjectId, ref: 'User'},
+  post: {type: Schema.Types.ObjectId, ref: 'Post'},
+  updated_at: { type: Date, default: Date.now },
 })
-
-userSchema.methods.generateHash = function(password) {
-    return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
-};
-
-// checking if password is valid
-userSchema.methods.validPassword = function(password) {
-    return bcrypt.compareSync(password, this.local.password);
-};
-module.exports = mongoose.model('User', userSchema)
-
 ````
 
-只关注 ``name`` 和 ``password`` 就好， 一般来说我们不会保存明文密码所以我们引入了 ``bcrypt-nodejs`` 中间件来对密码做加密。 在 ``user`` 模型上我们定义了两个方法一个加密另一个用来比对密码， 在把用户提交的密码信息放到数据库的时候我们会先用第一个方法来对密码加密然后保存， 在用户登录时我们需要第二个方法来比对密码。
+在创建一个 comment 时，填写它所指定的 post 的 id， 就完成了关联。在 post 模型内无需任何 comment 字段。 所以在 mogoose 中的逻辑是反向的： 我们提取 post1 下 comment， 是从 comment 模型内找到所有 post id 为 post1 的 comment， 而在关系型数据库是直接返回 post.comment 这样的写法。
 
-### 配置 session
+而在为每篇 post 添加 comment 时， comment 路由只需要找到对应的 post 即可。
 
-````js
-// app.js
-var cookieParser = require('cookie-parser')
-var session = require('express-session')
-
-app.use(cookieParser('keyboard cat'))
-app.use(session({
-  secret: 'keyboard cat',
-  resave: true,
-  saveUninitialized: true,
-  cookie: { secure: false }}))
-````
-
-这样我们就可以把 ``session`` 放到 ``cookie`` 里使用了
-
-### 设置用户注册登录路由
-
-有了 ``user`` 模型我们就可以执行登录注册操作了， 在 ``routes`` 下设立 ``user.js`` ， 需要一些基本的逻辑判断
-
-````js
-// routes/user.js
-
-var express = require('express')
-var router = express.Router()
-var User = require('../models/user')
-/* GET users listing. */
-router
-  .get('/login', (req, res) => {
-    res.render('login', {message: 'login'})
-  })
-  .post('/login', (req, res) => {
-    let name = req.body.name
-    let password = req.body.password
-    User.findOne({name: name}, (err, user) => {
-      if (err) {
-        res.render('login', {message: err})
-      }
-      if (!user) {
-        res.render('login', {message: 'user does not exist'})
-      } else {
-        if (user.password === password) {
-
-            // 成功登录后我们设置 session
-          req.session.user = user
-          console.log(req.session);
-          res.redirect('/posts')
-        } else {
-          res.render('login', {message: 'wrong password'})
-        }
-      }
-    })
-  })
-  .get('/profile', (req, res) => {
-    res.render('profile',{user: req.user})
-  })
-  .get('/signup', (req, res) => {
-    res.render('login', {message: 'please signup'})
-  })
-  .post('/signup', (req, res) => {
-    if (!req.body.name || !req.body.password) {
-      res.render('login', {message: 'please enter name and password'})
-    } else {
-      User.findOne({name: req.body.name}, (err, user) => {
-        if (user) {
-          res.render('login', {message: 'user exist'})
-        } else {
-          let newUser = new User({name: req.body.name, password: req.body.password})
-          newUser.save((err) => {
-            if (err) {
-              console.log(err);
-              res.render('login', {message: 'db can not save'})
-            } else {
-              // 成功注册用户后我们设置 session ，这样即默认用户已登录
-                req.session.user = newUser
-                res.redirect('/posts')
-            }
-          })
-        }
-      })
+```` javascript
+//routes/comment.js
+router.post('/:post_id/add', (req, res) => {
+  let body = req.body.body
+  let auther = req.session.user
+  let post_id = req.params.post_id
+  var comment = new Comment({body: body, post: post_id, auther: auther})
+  comment.save(err => {
+    if (err) {
+      res.json(err)
     }
   })
+````
 
-// 因为我们用 session 来查询用户的登录状态，所以注销即意味着清除 session
-  .get('/logout', (req, res) => {
-    req.session.destroy(() => {
-      res.render('login', {message: 'logout'})
+
+
+##### Tag 模型
+
+> 1. 一个 tag 对应多个 post ， 2. 一个 post 对应多个 tag
+
+首先实现一个 tag 对应多个 post ，我们可以在创建一个 tag 的时候指定包含这个 tag 的 post 列表（实现1）。 但是这基本是不可能的， 没有人会为创建一个 tag 来写篇 post（进而得到 post._id）。 所以 tag、post间的真实顺序关系是：
+
+1. 先创建一堆 tag
+2. 创建 post 的时候， 给 post 打上 tag
+3. 因为 tag 已经生成， 我们就可以直接把 post 的 tags 字段指向 tag._id
+
+````js
+// models/tag.js
+var tagSchema = new Schema({
+  name: {type: String, default: '标签名称'},//标签名称 eg: css html
+  catalogue_name: {type: String, default: '分类名称'},//分类名称 eg: FrontEnd
+  used_num: {type: Number, default: 0},//文章引用数
+  create_time: {type: Date, default: (new Date())},//创建时间 时间戳
+  posts: [{type: Schema.Types.ObjectId, ref: 'Post'}]
+})
+
+// models/post.js
+var postSchema = mongoose.Schema({
+  // _id: Schema.Types.ObjectId,
+  title: String,
+  body: String,
+  auther: {type: Schema.Types.ObjectId, ref: 'User'},
+  tags: [{type: Schema.Types.ObjectId, ref: 'Tag'}]
+})
+
+````
+
+
+tagSchema 这里的 posts 字段就是用来保存多个拥有此 tag 的 post 的列表即用来实现一个 post 有多个 tag（实现1）， 而 postSchema 这里的 tags 即用来实现一个 tag 有多个 post（实现2）。
+
+我们可以假想如何实现1， 我们有 tag1 这个 tag， 这个 tag 对应多篇 post ，即 posts 字段里存在多个 post。
+
+而对于实现2， 也是一样的， post1 这个 post 对应多个 tag ，即 tags 字段里存在多个 tag。
+
+所以按照前面讲的顺序， 我们现创建 tag 实例
+````js
+// routes/tag.js
+router.post('/add', (req, res) => {
+  let {name} = req.body
+  Tag.create({name: name}, (err) => {
+    if (err) {
+      res.json(err)
+    }
+    res.redirect('/tags')
+  })
+})
+````
+
+很简单， 然后在生成 post 的时候引用 tag， 在前端表单处理的时候我们选择复选框来传送 tag 。 而 tag 模型上也需要为 posts 字段添加引用， 这样才能实现一篇 post 有多个 tag 的引用。
+
+
+````js
+// routes/post.js
+router.post('/add', (req, res) => {
+  let {body, title, tag} = req.body
+  let auther = req.session.user
+  let tags = []
+  var post = new Post({title: title, body, auther: auther, tags: tag})
+
+// 矫正 tag 为数组， 因为如果只有一个 tag 的话提交上来是 string 类型， 而后续的查询条件需要为 array
+  if (typeof tag !== 'string') {
+    tags = tag
+  } else {
+    tags[0] = tag
+  }
+
+  post.save((err, post) => {
+    if (err) {
+      res.json(err)
+      return
+    }
+    // $in: Array 查询一组数据
+    Tag.find({_id: {$in: tags}}).exec((err,tags) => {
+      // 为此 post 引用的每个 tag 添加此 post 的引用即实现1
+      tags.forEach(tag => {
+        tag.posts.push(post)
+        tag.save()
+      })
     })
   })
 
-
-module.exports = router;
-
+  res.redirect('/posts')
+})
 ````
 
-OK， 路由弄好就可以设置视图了， 在 ``views`` 下设置视图 ``login.ejs``
+##### 填充 populate
+
+现在一条存有 posts 字段的 tag 类似于这样， posts 字段里面只保存了对各个 post._id 引用， 这些引用对应这每条 post 的， 我们不需要把这些 id 一一取出再在 post 模型内查找， mongoose 为我们提供了一个方法来填充这些引用的内容即 populate。
 
 ````js
-// views/ejs.js
-<h2>Login</h2>
+// no populate
+Tag.find().exec((err, tags) => {
+  res.json(tags)
+})
 
-<% if(message) {  %>
-  <%= message %>
-<% }  %>
+{"_id":"59c7868320b3980a1eb50a2c","__v":7,"posts":["59c7926aa0cf110cbb971c66","59c7928aa0cf110cbb971c67","59c79865de89da0d4965bf0d","59c79883de89da0d4965bf0e","59c79b9d3e4fe40e32ad08db","59c7a26d8c45300e7956f7f5","59c7a2f6967bff0ee8bd85b1"],"create_time":"2017-09-24T10:15:19.782Z","used_num":0,"catalogue_name":"分类名称","name":"a"}
 
-<form class=""  method="post">
-  name: <input type="text" name="name"><br>
-  password: <input type="password" name="password">
-  <button type="submit" name="button">Login</button>
-</form>
+// with populate
+Tag.find().populate('posts').exec((err, tags) => {
+  res.json(tags)
+})
 
-      <a href="/auth/github" class="btn btn-danger"><span class="fa fa-github"></span> Github</a>
+{"_id":"59c7868320b3980a1eb50a2c","__v":7,"posts":[{"_id":"59c7a2f6967bff0ee8bd85b1","title":"光荣感","body":"v 的 v 夫人","__v":0,"tags":["59c7868320b3980a1eb50a2c"]}],"create_time":"2017-09-24T10:15:19.782Z","used_num":0,"catalogue_name":"分类名称","name":"a"}
+````  
 
-````
+你可能会发现未填充的 posts 里的 id 明显多余填充了的 posts 选项， 这是因为我虽然删除了 post 实例， 但 tag 模型下的 posts 字段依旧保存这些 post._id 。在 mongoose 内， 我们需要注意的点会更多， 因为模型的关联只通过 id 即便对应这此 id 的实例已经被删除， 但那些有关联的模型内依然可能保存着这些关联 id , 只是数据已经为空了。
 
-### 用户登录过滤器
-
-我们需要一个函数来拦截那些未登录用户不能请求到的路由操作，例如更新、删除文章。 在 ``utilis`` 中创建 ``isLoggedIn.js``
-
-````js
-// utilis/isLoggedIn.js.js
-
-module.exports = function(req, res, next){
-  if (req.session.user || req.path == '/' || req.isAuthenticated()) {
-    next()
-  } else {
-    res.redirect('/user/login')
-  }
-}
-````
- 我们将在 ``posts`` 路由中使用这个函数来过滤请求， 通过判断用户是否登录（req.session.user）来执行后续的操作。
-
- 在 ``app.js`` 中加载所有路由
-
- ````js
- //app.js
- var postCtl = require('./routes/post')
- var userCtl = require('./routes/user')
- var isLoggedIn = require('./utilis/isLoggedIn')
-
- app.use('/user', userCtl)
- app.use('/posts', isLoggedIn, postCtl)
- ````
-这样 ``posts`` 下所有的路由都会经过 ``isLoggedIn`` 函数来进行权限的过滤。
-
-****
-
-另外还有成熟的用户验证包如 passport，我在此节中用 passport 和 passport-github2 集成了一个 github 的 oauth2 验证，有兴趣的同学可以参考 config／passport.js  
 
 > 参考文章：
 
-> [Social Authentication in Node.js With Passport](http://mherman.org/blog/2015/09/26/social-authentication-in-node-dot-js-with-passport/#.WbkwsNMjHZo)
+> [mongodb/mongoose findMany - find all documents with IDs listed in array](https://stackoverflow.com/questions/8303900/mongodb-mongoose-findmany-find-all-documents-with-ids-listed-in-array?rq=1)
 
-> [ExpressJS - Authentication](https://www.tutorialspoint.com/expressjs/expressjs_authentication.htm)
+> [Model.populate(docs, options, [callback(err,doc)])](http://devdocs.io/mongoose/api#model_Model.populate)

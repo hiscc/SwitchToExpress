@@ -12,52 +12,65 @@ router.get('/', (req, res) => {
   //   res.render('index', {posts: data, post: undefined})
   // })
   Post.find().populate('auther').exec((err, posts) => {
-    res.render('index', {posts: posts, post: undefined})
+    Tag.find({}).exec((err, tags) => {
+      if (err) {
+        res.json(err)
+      } else {
+        res.render('index', {posts: posts, post: undefined, tags: tags})
+      }
+    })
+    // res.render('index', {posts: posts, post: undefined})
       // res.json(posts)
   })
 
 })
 
 router.get('/add', (req, res) => {
-  res.render('form', {post: undefined})
+  Tag.find({}).exec((err, tags) => {
+    if (err) {
+      res.json(err)
+    } else {
+      res.render('form', {post: undefined, tags: tags})
+    }
+  })
 })
 
 router.post('/add', (req, res) => {
   let {body, title, tag} = req.body
   let auther = req.session.user
-  var post = new Post({title: title, body: body, auther: auther})
-  post.save((err) => {
+  let tags = []
+  var post = new Post({title: title, body, auther: auther, tags: tag})
+
+// 矫正 tag 为数组
+  if (typeof tag !== 'string') {
+    tags = tag
+  } else {
+    tags[0] = tag
+  }
+
+  post.save((err, post) => {
     if (err) {
       res.json(err)
+      return
     }
-
-    Tag.findOne({name: tag}, (err, doc) => {
-      if (err) {
-        res.json(err)
-      }
-      if (!!doc) {
-        doc.posts.push(post)
-        doc.save()
-        res.json(doc)
-      } else {
-        let tags = Tag.create({name: tag, posts: post})
-        tags.then(tag => {
-          res.json(tag)
-        })
-      }
+    Tag.find({_id: {$in: tags}}).exec((err,tags) => {
+      tags.forEach(tag => {
+        tag.posts.push(post)
+        tag.save()
+      })
     })
-
   })
-  // res.redirect('/posts')
+
+  res.redirect('/posts')
 })
 
 router.get('/:id', (req, res) => {
-  var post = Post.findOne({_id: req.params.id}).populate('comments auther', {_id: 1} ).exec()
+  var post = Post.findOne({_id: req.params.id}).populate('tags').exec()
   post.then(post => {
     var comms = Comment.find({post: post._id}).populate('auther').exec()
     comms.then(comms => {
       // res.json(comms)
-      res.render('post', {post: post, comments: comms})
+      res.render('post', {post: post, comments: comms, tags: post.tags})
     })
       // res.render('post', {post: post, comments: post.comments})
 
@@ -90,14 +103,13 @@ router.get('/:id/delete', (req, res) => {
       return
     }
   })
-  Tag.findOne({posts: post_id}, (err, tag) => {
-    // res.json(tag)
-    // return
-    // let post_arr = tag.posts
-    // let post_index = post_arr.index(post_id)
-    // post_arr.splice(post_index, 1)
-    // tag.save()
-  })
+  // Tag.findOne({posts: post_id}, (err, tag) => {
+  //   if (err) {
+  //     res.json(err)
+  //     return
+  //   }
+  //
+  // })
   Post.remove({_id: req.params.id}, (err) => {
     err? console.log(err): console.log('success delete')
   })

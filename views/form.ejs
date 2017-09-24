@@ -17,10 +17,15 @@
     <input type="text" name="title">
   </label>
   <label for="Body">Body
-    <input type="text" name="body">
+      <textarea name="body" rows="8" cols="80"></textarea>
   </label>
   <label for="tag">Tag
-    <input type="text" name="tag">
+    <% if(tags !== undefined){ %>
+    <% tags.forEach(tag => {%>
+      <%= tag.name %><input type="checkbox" value="<%= tag._id %>" name="tag">
+    <%}) %>
+    <%}%>
+
   </label>
   <% } %>
   <button type="submit" name="button">Add a post</button>

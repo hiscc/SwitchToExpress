@@ -1,11 +1,18 @@
 <% tags.forEach(tag => {%>
-  <li>Tag: <a href="/tags/<%= tag.name %>"><%= tag.name %></a>
+  <li>Tag: <a href="/tags/<%= tag.name %>"><%= tag.name %></a> / <a href="/tags/<%= tag.name %>/delete">delete this tag</a>
 <ul>
   <% tag.posts.forEach(post => {%>
 
-    Post<li>title: <%= post.title %> body: <%= post.body %></li>
+<li>title: <%= post.title %> body: <%= post.body %></li><a href="/posts/<%= post._id %>/delete"> delete </a>
 
     <%}) %>
   </ul>
 </li>
 <%}) %>
+
+<form class="" action="/tags/add" method="post">
+  <label for="name">
+    name:<input type="text" name="name" value="">
+  </label>
+  <button type="submit">submit</button>
+</form>

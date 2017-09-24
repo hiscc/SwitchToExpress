@@ -51,8 +51,9 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(express.static(path.join(__dirname, 'public')))
-// app.use(express.static(path.join(__dirname, 'views')))
+app.use(express.static('public'));
+app.use(express.static(path.join(__dirname + 'public')))
+// app.use(express.static(path.join(__dirname, 'node_modules')))
 
 app.use('/users', userCtl)
 app.use('/posts',  postCtl)
