@@ -95,25 +95,32 @@ router.post('/:id/update', (req, res) => {
   })
 })
 
-router.get('/:id/delete', (req, res) => {
-  let {post_id} = req.params.id
+router.get('/:post_id/delete', (req, res) => {
+  let {post_id} = req.params
   Comment.remove({post: post_id}, err => {
     if (err) {
       res.json(err)
       return
     }
   })
-  // Tag.findOne({posts: post_id}, (err, tag) => {
-  //   if (err) {
-  //     res.json(err)
-  //     return
-  //   }
-  //
-  // })
+  Tag.find({}, (err, tags) => {
+    if (err) {
+      res.json(err)
+      return
+    }
+      tags.forEach(tag => {
+        if(tag.posts.indexOf(post_id) !== -1){
+          tag.posts.pull(post_id)
+          tag.save()
+          console.log('yes'+ tag.posts.length);
+        }
+      })
+    // res.json(tags)
+  })
   Post.remove({_id: req.params.id}, (err) => {
     err? console.log(err): console.log('success delete')
   })
-  res.redirect('/posts')
+  // res.redirect('/posts')
 })
 
 module.exports = router

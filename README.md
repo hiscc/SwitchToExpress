@@ -158,6 +158,27 @@ Tag.find().populate('posts').exec((err, tags) => {
 
 你可能会发现未填充的 posts 里的 id 明显多余填充了的 posts 选项， 这是因为我虽然删除了 post 实例， 但 tag 模型下的 posts 字段依旧保存这些 post._id 。在 mongoose 内， 我们需要注意的点会更多， 因为模型的关联只通过 id 即便对应这此 id 的实例已经被删除， 但那些有关联的模型内依然可能保存着这些关联 id , 只是数据已经为空了。
 
+所以我们在删除 post 的路由下需要多处理一下其他模型对其的引用问题， 当一个 post 删除时， tag 对其的引用也应该被一起删除， 所以我们需要遍历每个 tag 实例， 并查找 posts 字段数组内是否有对此 post 的引用， 如果有则一并删除， mongoose 也提供了 pull 方法来方便我们删除引用， 最后保存更改 。
+
+````js
+// routes/post.js
+router.get('/:post_id/delete', (req, res) => {
+
+  ·····
+Tag.find({}, (err, tags) => {
+  if (err) {
+    res.json(err)
+    return
+  }
+    tags.forEach(tag => {
+      if(tag.posts.indexOf(post_id) !== -1){
+        tag.posts.pull(post_id)
+        tag.save()
+        console.log('yes'+ tag.posts.length);
+      }
+    })
+})
+````
 
 > 参考文章：
 
