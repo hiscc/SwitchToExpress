@@ -7,7 +7,8 @@ var postSchema = mongoose.Schema({
   title: String,
   body: String,
   auther: {type: Schema.Types.ObjectId, ref: 'User'},
-  tags: [{type: Schema.Types.ObjectId, ref: 'Tag'}]
+  tags: [{type: Schema.Types.ObjectId, ref: 'Tag'}],
+  create_time: {type: Date, default: new Date()}
 })
 
 module.exports = mongoose.model('Post', postSchema)

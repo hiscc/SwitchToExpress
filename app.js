@@ -14,7 +14,7 @@ var userCtl = require('./routes/user')
 var commentCtl = require('./routes/comment')
 var tagCtl = require('./routes/tag')
 var isLoggedIn = require('./utilis/isLoggedIn')
-
+var imageCtl = require('./routes/image')
 
 var passport = require('passport')
 var GitHubStrategy = require('passport-github2').Strategy;
@@ -52,13 +52,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(express.static('public'));
-app.use(express.static(path.join(__dirname + 'public')))
-// app.use(express.static(path.join(__dirname, 'node_modules')))
+// app.use(express.static(path.join(__dirname + 'public')))
+app.use(express.static(path.join(__dirname, 'uploads')))
 
 app.use('/users', userCtl)
 app.use('/posts',  postCtl)
 app.use('/comments', commentCtl)
 app.use('/tags', tagCtl)
+app.use('/images', imageCtl)
 
 require('./config/passport')(passport)
 

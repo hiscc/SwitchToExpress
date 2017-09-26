@@ -10,7 +10,7 @@ const userSchema = mongoose.Schema({
     unique: true
   },
   password: String,
-  posts: [{type: Schema.Types.ObjectId, ref: 'Post'}],
+  // posts: [{type: Schema.Types.ObjectId, ref: 'Post'}],
   github           : {
       id           : String,
       profile       : String,

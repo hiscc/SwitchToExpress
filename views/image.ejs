@@ -1,0 +1,33 @@
+<form class="" action="/images/add" method="post" enctype="multipart/form-data">
+  add your image<input type="file" name="image" value="">
+  <button type="submit" name="button">add</button>
+</form>
+
+<!-- <img src="/image-1506434344501.jpeg" alt=""> -->
+<% if(images !== undefined){%>
+  <ul>
+
+
+  <% images.forEach(image => {%>
+    <li>
+      <img src="../<%= image.url %>">
+      <span><%= image.name %></span>
+      <a href="/images/<%= image._id %>/delete">delete</a>
+    </li>
+  <%}) %>
+    </ul>
+<%} %>
+
+<style media="screen">
+  ul{
+    display: flex;
+    flex-flow: wrap;
+  }
+  li{
+
+    list-style: none;
+  }
+  img{
+    height: 50%;
+  }
+</style>
