@@ -11,6 +11,7 @@
   <% images.forEach(image => {%>
     <li>
       <img src="../<%= image.url %>">
+      auther: <%= image.auther.name %>
       <span><%= image.name %></span>
       <a href="/images/<%= image._id %>/delete">delete</a>
     </li>

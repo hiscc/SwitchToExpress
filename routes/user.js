@@ -42,7 +42,7 @@ router
           newUser.save((err) => {
             if (err) {
               console.log(err);
-              res.render('login', {message: 'db can not save'})
+              res.render('login', {message: 'data can not save'})
             } else {
                 req.session.user = newUser
                 res.redirect('/posts')
@@ -84,4 +84,4 @@ router
 
 
 
-module.exports = router;
+module.exports = router
