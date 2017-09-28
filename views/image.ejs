@@ -1,37 +1,33 @@
-<form class="" action="/images/add" method="post" enctype="multipart/form-data">
-  add your image<input type="file" name="image" value="" multiple="multiple">
-  <input type="text" name="name" value="">
-  <input type="text" name="area">
-  <button type="submit" name="button">add</button>
+<%- include header %>
+<div class="container">
+
+
+<form class="" action="/images/add" method="post" enctype="multipart/form-data" class="form-group">
+  add your image<input type="file" name="image" value="" multiple="multiple" required>
+  <button type="submit" name="btn primary">add</button>
 </form>
 
 <!-- <img src="/image-1506434344501.jpeg" alt=""> -->
 <% if(images !== undefined){%>
-  <ul>
+  <ul class="">
 
 
   <% images.forEach(image => {%>
-    <li><a href="../<%= image.url %>">
-      <img src="../<%= image.url %>">
+    <li class="list-group-item w-50 float"><a href="../<%= image.url %>">
+      <img src="../<%= image.url %>" class="rounded h-25">
       </a>
-      auther: <%= image.auther.name %>
-      <span><%= image.name %></span>
-      <a href="/images/<%= image._id %>/delete">delete</a>
+      <div class="w-100">
+       <span class="badge badge-default">auther: <%= image.auther.name %></span>
+      <span class="badge badge-default"><%= image.name %></span>
+      <a href="/images/<%= image._id %>/delete" class="badge badge-danger">delete</a>
+    </div>
     </li>
   <%}) %>
     </ul>
 <%} %>
 
+</div>
+<% include footer  %>
 <style media="screen">
-  ul{
-    display: flex;
-    flex-flow: wrap;
-  }
-  li{
 
-    list-style: none;
-  }
-  img{
-    height: 50%;
-  }
 </style>

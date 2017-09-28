@@ -1,3 +1,5 @@
+<%- include header %>
+
 <% tags.forEach(tag => {%>
   <li>Tag: <a href="/tags/<%= tag.name %>"><%= tag.name %></a> number:<%= tag.posts.length %> / <a href="/tags/<%= tag.name %>/delete">delete this tag</a>
 <ul>
@@ -16,3 +18,5 @@
   </label>
   <button type="submit">submit</button>
 </form>
+
+<%- include footer %>

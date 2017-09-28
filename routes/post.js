@@ -117,10 +117,10 @@ router.get('/:post_id/delete', (req, res) => {
       })
     // res.json(tags)
   })
-  Post.remove({_id: req.params.id}, (err) => {
+  Post.remove({_id: post_id}, (err) => {
     err? console.log(err): console.log('success delete')
   })
-  // res.redirect('/posts')
+  res.redirect('/posts')
 })
 
 module.exports = router

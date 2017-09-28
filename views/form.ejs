@@ -1,8 +1,12 @@
+<%- include header %>
 
-<h2>Switching to express</h2>
 <h3>Add a post</h3>
 
   <% if(post !== undefined) { %>
+
+
+
+<div class="input-group">
   <form method="post">
   <label for="Title">Title
     <input type="text" name="title" value="<%= post.title %>">
@@ -13,20 +17,24 @@
 
   <% }else{ %>
   <form method="post" action="/posts/add">
-  <label for="Title">Title
-    <input type="text" name="title">
-  </label>
-  <label for="Body">Body
-      <textarea name="body" rows="8" cols="80"></textarea>
-  </label>
+    <div class="input-group">
+
+    <span class="input-group-addon" id="basic-addon1">title</span><input class="form-control" type="text" name="title">
+    </div>
+    <div class="input-group">
+    <span class="input-group-addon" id="basic-addon1">content</span><textarea  class="form-control" name="body" rows="8" cols="80"></textarea>
+
+    </div>
   <label for="tag">Tag
     <% if(tags !== undefined){ %>
     <% tags.forEach(tag => {%>
-      <%= tag.name %><input type="checkbox" value="<%= tag._id %>" name="tag">
+      <%= tag.name %><input type="checkbox"  value="<%= tag._id %>" name="tag">
     <%}) %>
     <%}%>
 
   </label>
   <% } %>
-  <button type="submit" name="button">Add a post</button>
+  <button type="submit" class="btn btn-primary btn-block" name="button">Add a post</button>
 </form>
+</div>
+<%- include footer %>

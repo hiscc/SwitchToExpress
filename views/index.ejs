@@ -1,13 +1,23 @@
+<%- include header %>
+<div class="container">
 
-<ul>
+
+
+<div class="list-group">
   <% posts.forEach((post) => { %>
-    <li>Title: <%= post.title %> Body: <% post.body %>
-      auther: <% if(post.auther){ %>
-        <%= post.auther.name %>
-            <% } %>
-       <a href="/posts/<%= post._id %>/delete">Delete</a> | <a href="/posts/<%= post._id %>/update">Update</a> <a href="/posts/<%= post._id %>">Detail</a></li>
+    <a href="/posts/<%= post._id %>" class="list-group-item list-group-item-action flex-column align-items-start">
+      <div class="d-flex w-100 justify-content-between">
+        <h3 class="mb-1"><%= post.title %></h3>
+        <% if(post.auther){ %>
+          <small><%= post.auther.name %></small>
+        <% } %>
+      </div>
+      <p class="mb-1"><%= post.body %></p>
+      <a href="/posts/<%= post._id %>/delete" class="btn btn-outline btn-sm">delete</a><a class="btn btn-outline btn-sm" href="/posts/<%= post._id %>/update">update</a>
+    </a>
   <% }) %>
-</ul>
+</div>
+
 <a href="/posts">posts</a>
 <a href="/users">users</a>
 <a href="/users/logout">Logout</a>
@@ -16,3 +26,5 @@
 <a href="/images">images</a>
 
 <%- include form %>
+</div>
+<%- include footer %>
