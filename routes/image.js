@@ -34,15 +34,27 @@ router
 
       res.render('image', {images: imagesArray})
     })
+    // Image.remove(err=>{
+    //   if (err) {
+    //     res.json(err)
+    //   }
+    //   res.json('suc')
+    // })
 
   })
-  .post('/add', upload.single('image'), (req, res) => {
-    let { originalname, filename } = req.file
+  .post('/add', upload.array('image', 3), (req, res) => {
+    // let { originalname, filename } = req.file
+    let files = req.files
     let user = req.session.user
-    // res.json(user)
-    Image.create({name: originalname, url: filename, auther: user}, (err, image) => {
+    let fileArray = []
+    files.forEach(file => {
+      fileArray.push({name: file.originalname, url: file.filename, auther: user})
+    })
+
+    // res.json(array)
+    Image.create(fileArray, (err, imageArray) => {
       if(err) res.json(err)
-      res.json(image)
+      res.json(imageArray)
     })
   })
   .get('/:id/delete', (req, res) => {

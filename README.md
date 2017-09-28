@@ -30,7 +30,7 @@ url 字段用来保存文件名， 后面的 img 标签和 fs 会用它来显示
 
 #### multer 配置
 
-首先引入 multer，我配置的是 disk 存储。 当然你也可以直接 `var upload = multer({ dest: 'uploads/' })` 这样, 但文件名会没有格式后缀， 在用 img 标签显示图片的时候会很麻烦。 所以我们配置一下上传路径和上传文件名， 需要注意的一点就是对于 destination 键， 记得加 `__dirname` 修正路径。 在 filename 键里我们可以自定义文件名。 fieldname 为我们前端表单域的 name 值， mimetype 为文件类型， image 图片类型是 `image/jpeg ` 我们截取后半段即 jpeg 添加到文件名后形成完整后缀。
+首先引入 multer，我配置的是 disk 存储。 当然你也可以直接 `var upload = multer({ dest: 'uploads/' })` 这样, 但文件名会没有格式后缀， 在用 img 标签显示图片的时候会很麻烦。 所以我们配置一下上传路径和上传文件名， 需要注意的一点就是对于 destination 键， 记得加 `__dirname` 修正路径。 在 filename 键里我们可以自定义文件名。 fieldname 为我们前端表单域的 name 值， mimetype 为文件类型， jpeg 图片类型是 `image/jpeg ` 我们截取后半段即 jpeg 添加到文件名后形成完整后缀。
 
 ```` javascript
 //routes/image.js

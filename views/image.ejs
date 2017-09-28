@@ -1,5 +1,7 @@
 <form class="" action="/images/add" method="post" enctype="multipart/form-data">
-  add your image<input type="file" name="image" value="">
+  add your image<input type="file" name="image" value="" multiple="multiple">
+  <input type="text" name="name" value="">
+  <input type="text" name="area">
   <button type="submit" name="button">add</button>
 </form>
 
@@ -9,8 +11,9 @@
 
 
   <% images.forEach(image => {%>
-    <li>
+    <li><a href="../<%= image.url %>">
       <img src="../<%= image.url %>">
+      </a>
       auther: <%= image.auther.name %>
       <span><%= image.name %></span>
       <a href="/images/<%= image._id %>/delete">delete</a>
