@@ -5,13 +5,18 @@ var Tag = require('../models/tag')
 var Comment = require('../models/comment')
 var path = require('path')
 // router start
+var paginate = require('express-paginate')
 
+
+// paginate({}, { page: req.query.page, limit: req.query.limit }
 router.get('/', (req, res) => {
   // Post.find({}, (err, data) => {
   //   res.json(data)
   //   res.render('index', {posts: data, post: undefined})
   // })
-  Post.find().populate('auther').exec((err, posts) => {
+  let page = req.query.page || 1
+  var pageSize = 3
+  Post.find().skip(pageSize*(page - 1)).limit(pageSize).populate('auther').exec((err, posts) => {
     Tag.find({}).exec((err, tags) => {
       if (err) {
         res.json(err)
@@ -20,7 +25,7 @@ router.get('/', (req, res) => {
       }
     })
     // res.render('index', {posts: posts, post: undefined})
-      // res.json(posts)
+    // res.json(posts)
   })
 
 })

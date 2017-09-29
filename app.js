@@ -8,6 +8,8 @@ var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
 var session = require('express-session')
 var passport = require('passport')
+var paginate = require('express-paginate')
+
 
 var postCtl = require('./routes/post')
 var userCtl = require('./routes/user')
@@ -54,6 +56,8 @@ app.use(passport.session());
 app.use(express.static('public'));
 // app.use(express.static(path.join(__dirname + 'public')))
 app.use(express.static(path.join(__dirname, 'uploads')))
+app.use(paginate.middleware(10, 50))
+
 
 app.use('/users', userCtl)
 app.use('/posts',  postCtl)

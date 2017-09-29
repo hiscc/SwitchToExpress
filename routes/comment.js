@@ -29,11 +29,15 @@ router.post('/:post_id/add', (req, res) => {
 
 router.get('/:comment_id/delete', (req, res) => {
   var comment_id = req.params.comment_id
-  var comment = Comment.remove({_id: comment_id}, (err) => {
-    err? console.log(err): console.log('success delete');
+  var comment = Comment.remove({_id: comment_id}, (err, doc) => {
+    if (err) {
+      res.json(err)
+    }
+    var back = req.Referer
+    // res.render(bac)
+    res.json('success delete' + doc)
   })
-  var back = req.Referer
-  res.redirect(back)
+
 })
 
 module.exports = router
