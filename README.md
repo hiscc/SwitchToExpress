@@ -2,15 +2,19 @@
 
 本项目将基于 Express 从零开始搭建一个功能完备的博客系统
 
-在本节我们主要实现图片的上传与删除， 并为每个用户创建一个图床
+在本节我们主要实现 post 的排序、搜索、分页功能
 
-1. 利用 multer 包来上传文件（主要是图片）
-1. 增加 Image 模型记录每个 Image 实例的文件名、原名称及作者
+1. 理解后端对数据排序、搜索、分页的基本原理
+1. 熟悉 mongoose 对模型的操作
 
 ### 基本构造
+1. 实现 post 分页
+1. 实现上拉加载
+1. 实现 post 搜索
+1. 实现 post 排序
 
 
-#### Image 模型
+#### post 分页
 
 > Image 模型主要字段有原名称、 文件名（自定义的）、 创建时间、 作者（用来控制只显示当前用户上传的图片）
 
@@ -124,3 +128,7 @@ fs.unlink 方法即可删除指定路径下的文件。
 > 参考文章：
 
 > [mongodb分页优化](https://cnodejs.org/topic/559a0bf493cb46f578f0a601#55c168c9ffd82de21c21dd56)
+
+>[Mongoose 多条件模糊查询的实现](http://www.zhimengzhe.com/Javascriptjiaocheng/201209.html)
+
+>[Mongodb和mongoose模糊查询](https://yuedun.duapp.com/blogdetail/581d736c43c18f1b7ae3e3ff)

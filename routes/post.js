@@ -29,6 +29,44 @@ router.get('/', (req, res) => {
   })
 
 })
+router.get('/search', (req, res) => {
+  // let q = req.query.q || ''
+  let {q=""} = req.query
+  // 前端表单使用 get 方法指定 name = q 便得到 query.q
+  Post.find(
+    // query
+    {
+      $or:[
+        {title: {$regex: q, $options: 'ix'}},
+        {body: {$regex: q, $options: 'ix'}}
+      ]
+    },
+    // filter1 0 - filter, 1 - left
+    {title: 1, body: 1},
+    // filter2
+    {sort: {create_time: -1}, limit: 10}
+  ).exec((err, posts) => {
+    if (err) {
+      res.json(err)
+      return
+    }
+    // res.json(posts)
+    res.render('index', {posts: posts, post: undefined, tags: undefined})
+  })
+})
+
+router.get('/sort', (req, res) => {
+  let {name = 1, create = -1} = req.query
+
+  Post.find({},null,{sort: {name: name, create_time: create} }).exec((err, posts) => {
+    if (err) {
+      res.json(err)
+      return
+    }
+    // res.json(posts)
+    res.render('index', {posts: posts, post: undefined, tags: undefined})
+  })
+})
 
 router.get('/add', (req, res) => {
   Tag.find({}).exec((err, tags) => {
