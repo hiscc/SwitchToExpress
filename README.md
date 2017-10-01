@@ -9,120 +9,99 @@
 
 ### 基本构造
 1. 实现 post 分页
-1. 实现上拉加载
 1. 实现 post 搜索
 1. 实现 post 排序
 
 
 #### post 分页
 
-> Image 模型主要字段有原名称、 文件名（自定义的）、 创建时间、 作者（用来控制只显示当前用户上传的图片）
+> post 分页主要利用 mongoose 提供的 skip 和 limit 函数来进行数据查询
 
-套路还是一样， Image 模型主动去关联作者， 而 User 模型无任何变动， 当然你也可以在 User 模型下创建 images 字段来关联图片。 但我还是选择这种反向关联， 因为感觉更简单点 🐶。
+基本原理是通过给 skip 和 limit 动态传入参数来达到效果， 我选择了 req.query 来传入参数。 主要参数有两个， page 即页数， pageSize 即每页容量。 抽象出函数即 ``skip(pageSize*(page - 1)).limit(pageSize)`` ， 第一页即 skip(0).limit(3), 第二页即 skip(3*(2 - 1)).limit(3) ，以此类推。
 
 ````js
-//models/images.js
-let imageSchema = new Schema({
-  name: String,
-  url: String,
-  auther: {type: Schema.Types.ObjectId, ref: 'User'},
-  create_time: {type: Date, default: new Date()}
-})
-````
-
-url 字段用来保存文件名， 后面的 img 标签和 fs 会用它来显示和删除图片。 name 是原文件名称。
-
-#### multer 配置
-
-首先引入 multer，我配置的是 disk 存储。 当然你也可以直接 `var upload = multer({ dest: 'uploads/' })` 这样, 但文件名会没有格式后缀， 在用 img 标签显示图片的时候会很麻烦。 所以我们配置一下上传路径和上传文件名， 需要注意的一点就是对于 destination 键， 记得加 `__dirname` 修正路径。 在 filename 键里我们可以自定义文件名。 fieldname 为我们前端表单域的 name 值， mimetype 为文件类型， jpeg 图片类型是 `image/jpeg ` 我们截取后半段即 jpeg 添加到文件名后形成完整后缀。
-
-```` javascript
-//routes/image.js
-const multer  = require('multer')
-const fs = require('fs')
-
-
-let storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, __dirname + '/../uploads')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + '.' +file.mimetype.split('/')[1])
-  }
-})
-
-const upload = multer({ storage: storage })
-````
-
-
-#### 上传图片及 image 模型操作
-在 add 路由处， 添加 `upload.single('image')`， 其中 image 为前端表单 name 值。 然后我们根据当前 session 来记录当前用户顺便传进 image 实例中。
-
-```` javascript
-//routes/image.js
-.post('/add', upload.single('image'), (req, res) => {
-  let { originalname, filename } = req.file
-  let user = req.session.user
-  // res.json(user)
-  Image.create({name: originalname, url: filename, auther: user}, (err, image) => {
-    if(err) res.json(err)
-    res.json(image)
-  })
-})
-````
-
-
-#### 显示图片及 image 模型操作
-我们在 `／` 总路由下设置登录用户只能查看自己上传的图片。 通过比较当前用户的 id 和 image.auther 的 id 来判断是不是当前用户， 其实就是起到一个过滤器的作用， 最后把合格的值添加到数组内传递给 ejs 模版即可。
-
-```` javascript
-//routes/image.js
-.get('/', (req, res) => {
-  Image.find().populate('auther').exec((err, images) => {
-    if(err) res.json(err)
-    // res.json(images)
-    let user = req.session.user
-    let imagesArray = []
-    if (!!user) {
-      images.forEach(image => {
-        if (user._id == image.auther._id) {
-          imagesArray.push(image)
-        }else {
-          console.log(image.auther, user);
-        }
-      })
-    }
-
-    res.render('image', {images: imagesArray})
-  })
-
-})
-````
-
-
-#### 删除图片及 image 模型操作
-
-最后是删除操作， 首先我们需要删除 image 实例然后再通过 fs 模块来删除图片文件。
-fs.unlink 方法即可删除指定路径下的文件。
-```` javascript
-//routes/image.js
-.get('/:id/delete', (req, res) => {
-  let {id} = req.params
-
-  Image.findOneAndRemove({_id: id}, (err, image) => {
-    if(err) res.json(err)
-    // 获取文件名
-    let url = image.url
-    // unlink 用于删除文件
-    fs.unlink(`./uploads/${url}`,function(err){
-    if(err) return console.log(err);
-    console.log('file deleted successfully');
+//models/posts.js
+router.get('/', (req, res) => {
+  // Post.find({}, (err, data) => {
+  //   res.json(data)
+  //   res.render('index', {posts: data, post: undefined})
+  // })
+  let page = req.query.page || 1
+  var pageSize = 3
+  Post.find().skip(pageSize*(page - 1)).limit(pageSize).populate('auther').exec((err, posts) => {
+    Tag.find({}).exec((err, tags) => {
+      if (err) {
+        res.json(err)
+      } else {
+        res.render('index', {posts: posts, post: undefined, tags: tags})
+      }
     })
+    // res.render('index', {posts: posts, post: undefined})
+    // res.json(posts)
   })
-    // 删除路由必须加后续处理（当然这个一般都有）， 否则程序会一直请求 image.url 直至进程挂掉
-  res.redirect('/images')
+
 })
 ````
+
+经过前面几节， 你应该越发感觉到路由其实就是对应着一组资源 （m）的控制操作， 即常说的控制器 c
+
+#### post 搜索
+
+在 mongoose 中，我们没有所谓的 like 查询语句。 mongoose 直接使用正则匹配来实现搜索功能， 需要注意的是对于正则匹配动态查询时 ``var a="Nodejs"  Post.find({ body: /a/i}, function (err, docs) {})`` ,  /a/ 会被认为 ／“a”／ 而非查询 "Nodejs"， 所以我们需要一种固定写法即 $regex 来标识动态查询， $options 来设置参数。 遇到多条动态查询时可选 $or 或 $and 来实现。
+
+```` javascript
+//routes/post.js
+router.get('/search', (req, res) => {
+  // let q = req.query.q || ''
+  let {q = ""} = req.query
+  // 前端表单使用 get 方法指定 name = q 便得到 query.q
+  Post.find(
+    // query
+    {
+      $or:[
+        {title: {$regex: q, $options: 'ix'}},
+        {body: {$regex: q, $options: 'ix'}}
+      ]
+    },
+    // filter1 0 - filter, 1 - left
+    {title: 1, body: 1},
+    // filter2
+    {sort: {create_time: -1}, limit: 10}
+  ).exec((err, posts) => {
+    if (err) {
+      res.json(err)
+      return
+    }
+    // res.json(posts)
+    res.render('index', {posts: posts, post: undefined, tags: undefined})
+  })
+})
+
+````
+
+
+
+#### post 排序
+
+post 排序即利用 sort 函数来指定我们按什么规则来排序。 一个 query 最多有四个参数： 第一个为查询条件、 第二个是过滤条件即对查询出的数据进行过滤， 筛出某些需要／不需要的字段、 第三为参数设置主要用于排序、 第四为回掉函数。 ``Post.find({},null,{sort: {name: name, create_time: create} })`` 第一个参数为空即查询出所有 post 数据， 若无第三个字段我们也不必填写第二个参数即不筛出任何字段返回完整的实例， 第三个字段即数据排序， -1 倒序， 1 正序。
+
+```` javascript
+//routes/post.js
+router.get('/sort', (req, res) => {
+  let {name = 1, create = -1} = req.query
+
+  Post.find({},null,{sort: {name: name, create_time: create} }).exec((err, posts) => {
+    if (err) {
+      res.json(err)
+      return
+    }
+    // res.json(posts)
+    res.render('index', {posts: posts, post: undefined, tags: undefined})
+  })
+})
+````
+
+然后我们在前端模版处即可调用这条路由来对数据进行对应排序操作。
 
 
 > 参考文章：

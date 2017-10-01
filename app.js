@@ -83,8 +83,6 @@ app.get('/auth/github/callback',
 
 
 
-
-
 app.set('port', process.env.PORT || 3000)
 var port = app.get('port')
 app.listen(app.get('port'), () => {

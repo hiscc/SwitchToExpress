@@ -7,8 +7,6 @@ var path = require('path')
 // router start
 var paginate = require('express-paginate')
 
-
-// paginate({}, { page: req.query.page, limit: req.query.limit }
 router.get('/', (req, res) => {
   // Post.find({}, (err, data) => {
   //   res.json(data)
