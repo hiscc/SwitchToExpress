@@ -15,13 +15,23 @@ router.get('/', (req, res) => {
   let page = req.query.page || 1
   var pageSize = 3
   Post.find().skip(pageSize*(page - 1)).limit(pageSize).populate('auther').exec((err, posts) => {
-    Tag.find({}).exec((err, tags) => {
-      if (err) {
-        res.json(err)
-      } else {
-        res.render('index', {posts: posts, post: undefined, tags: tags})
+    Post.count({}, (err, count) => {
+      let pages = []
+      let pageNum = Math.ceil(count/pageSize)
+
+      for (var i = 0; i < pageNum; i++) {
+        pages.push(i)
       }
+      Tag.find({}).exec((err, tags) => {
+        if (err) {
+          res.json(err)
+        } else {
+
+          res.render('index', {posts: posts, post: undefined, tags: tags, pages: pages, curpage: page})
+        }
+      })
     })
+
     // res.render('index', {posts: posts, post: undefined})
     // res.json(posts)
   })
