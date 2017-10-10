@@ -6,12 +6,13 @@
 
 1. 理解后端对数据排序、搜索、分页的基本原理
 1. 熟悉 mongoose 对模型的操作
+1. 实现多级 comments
 
 ### 基本构造
 1. 实现 post 分页
 1. 实现 post 搜索
 1. 实现 post 排序
-
+1. 实现 comments 多级评论
 
 #### post 分页
 
@@ -103,6 +104,68 @@ router.get('/sort', (req, res) => {
 
 然后我们在前端模版处即可调用这条路由来对数据进行对应排序操作。
 
+#### comments 多级评论
+
+在前面的章节里， 我们实现了单篇文章下创建多个同级评论即 1 级评论。 而在实际操作中， 评论区可以分有多级： 如用于回复评论 1 的评论 11， 或者是 12、13 等， 评论 11、12、13 我们称之为 2 级评论， 而二级评论下还会有 121、122、123、 111、112 等三级评论， 所以这里可能会出现无限级的评论， 从而形成一些内楼中楼的景象。 如何实现这种模型关系呢？ 当然你可以多创建几个 Comment 模型分别标记为 Comment1、 Comment2、 Comment3 。。。来为 comments 分级， 但这显然不能实现， 我们无法预测评论的层级。 在这里我借鉴了一种简单的思路来实现多级评论。 在我们原有的 Comment 模型内添加两个字段， pre_id 用来记录父级评论 id， next_id 用来记录自己评论信息。
+
+```` javascript
+//models/comment.js
+
+var commentSchema = mongoose.Schema({
+  body: {type: String},
+  auther: {type: Schema.Types.ObjectId, ref: 'User'},
+  post: {type: Schema.Types.ObjectId, ref: 'Post'},
+  //pre_id 用来标记所属上层 comment 。 即评论1的pre_id 为空， 评论11的 pre_id 为1， 评论111的 pre_id 为11。 主要用来标示回复人
+  pre_id: {type: Schema.Types.ObjectId, ref: 'Comment'},
+  //next_id 用来标记下层 comment 。 即一条评论下又可有多条子评论
+  next_id: [{type: Schema.Types.ObjectId, ref: 'Comment'}],
+  updated_at: { type: Date, default: Date.now },
+})
+
+````
+
+在路由方面我重设一条路由来添加多级评论， 主要为了获得 一级评论的 **_id** 进而填充 next_id， 当然你页可以修改以前的 **/:post_id/add** 路由来适配。 首先我们创建新的二级评论， 然后查到到一级评论并把新评论填充到 next_id 内，保存基本就可以了。 在 views 内渲染 comments.next_id 遍历就可以显示了。
+
+在删除评论是会有问题， 我们原先的 comment 删除路由只能删除一级评论而不能删除 next_id 内引用的次级评论， 我们需要修改删除路由。 同样别忘了在 post 的删除路由下我们也需要修改， 即删除一篇 post 要删除 '所有' 的评论。
+
+```` javascript
+//routes/comment.js
+router.post('/:post_id/:comment_id/add', (req, res) => {
+  let body = req.body.sub
+  let auther = req.session.user
+  let post_id = req.params.post_id
+  let comment_id = req.params.comment_id
+  let comment = new Comment({body: body, auther: auther, pre_id: comment_id})
+
+  comment.save((err,doc) => {
+    if (err) {
+      res.json(err)
+      return
+    }
+    Comment.findById(comment_id, (err, comm) => {
+      comm.next_id.push(doc)
+      comm.save()
+    })
+  })
+  res.redirect('/posts/' + post_id)
+})
+
+router.get('/:comment_id/delete', (req, res) => {
+  var comment_id = req.params.comment_id
+  var comm = Comment.findById(comment_id).populate('next_id').exec()
+  comm.then(com => {
+    com.remove().then(doc => {
+      // 删除次级评论
+      doc.next_id.forEach(id => {
+        id.remove()
+      })
+      res.end('successful')
+      // res.json(doc)
+    })
+  })
+
+})
+````
 
 > 参考文章：
 

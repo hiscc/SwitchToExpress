@@ -108,13 +108,11 @@ router.post('/add', (req, res) => {
 router.get('/:id', (req, res) => {
   var post = Post.findOne({_id: req.params.id}).populate('tags').exec()
   post.then(post => {
-    var comms = Comment.find({post: post._id}).populate('auther').exec()
+    var comms = Comment.find({post: post._id}).populate('auther next_id').exec()
     comms.then(comms => {
       // res.json(comms)
       res.render('post', {post: post, comments: comms, tags: post.tags})
     })
-      // res.render('post', {post: post, comments: post.comments})
-
     // res.json(post)
   })
 })
@@ -138,12 +136,19 @@ router.post('/:id/update', (req, res) => {
 
 router.get('/:post_id/delete', (req, res) => {
   let {post_id} = req.params
-  Comment.remove({post: post_id}, err => {
-    if (err) {
-      res.json(err)
+  let comm = Comment.findOne({post: post_id}).populate('next_id').exec()
+  comm.then(com => {
+    com.remove().then(doc => {
+      // 删除二级评论
+      doc.next_id.forEach(id => {
+        id.remove()
+      })
+      // res.end('successful')
+      res.json(doc)
       return
-    }
+    })
   })
+
   Tag.find({}, (err, tags) => {
     if (err) {
       res.json(err)

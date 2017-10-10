@@ -5,16 +5,32 @@
 <% tags.forEach(tag => {%>
   <a href="/tags/<%= tag.name %>"><%= tag.name %></a>
 <%}) %>
-
+<hr>
 comments:
-<% comments.forEach((comment) => { %>
-  <p>text: <%= comment.body %> ||| whole: <% if(comment.auther){ %>
-    <%= comment.auther.name %>fdf</p>
+<ul class="demo-list-item mdl-list">
+  <% comments.forEach((comment) => { %>
+  <li class="mdl-list__item">
+      text: <%= comment.body %>      name: <% if(comment.auther){ %>
+        <%= comment.auther.name %>fdf
+        <% } %><span class="reply">reply</span><a href="/comments/<%= comment._id %>/delete">Delete</a>
+        <% if(comment.next_id){%>
+          <ol>
+            <% comment.next_id.forEach((comm) => {%>
+              <li>
+                subtext: <%= comm.body %>
+              </li>
+            <%}) %>
+          </ol>
+        <%} %>
+  </li>
+  <form class="reply-form" action="/comments/<%= post._id %>/<%= comment._id %>/add" method="post">
+    <input type="text" name="sub" value="">
+    <button type="submit">submit</button>
+  </form>
+  <%}) %>
+</ul>
 
 
-    <% } %>
-    <a href="/comments/<%= comment._id %>/delete">Delete</a>
-<%}) %>
 <hr>
 
 Add a comment
