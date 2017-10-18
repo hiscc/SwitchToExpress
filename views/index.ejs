@@ -21,12 +21,15 @@
     </a>
   <% }) %>
 </div>
+  <% if(pages !== undefined){ %>
 <ul>
+
   <% pages.forEach(page => {%>
     <a href="?page=<%= page+1 %>" <% if(curpage == page+1){%>
         style="color: red; font-size: 20px"
     <%}%> ><%= page+1 %></a>
   <%})  %>
+
 </ul>
 <a href="?page=<%= curpage-1 %>" <% if(curpage == 1){%>
   style="display: none"
@@ -34,7 +37,7 @@
 <a href="?page=<%= curpage+1 %>" <% if(curpage == pages.length){%>
   style="display: none"
 <%} %> class="btn btn-primary btn-block">next page</a>
-
+<%}%>
 
 
 <a href="/posts">posts</a>

@@ -58,7 +58,10 @@ app.use(express.static('public'));
 app.use(express.static(path.join(__dirname, 'uploads')))
 app.use(paginate.middleware(10, 50))
 
-
+app.use('/socket.js', express.static('node_modules/socket.io-client/dist/socket.io.js'))
+app.use('/', (req, res) => {
+  res.render('websocket')
+})
 app.use('/users', userCtl)
 app.use('/posts',  postCtl)
 app.use('/comments', commentCtl)
@@ -85,6 +88,22 @@ app.get('/auth/github/callback',
 
 app.set('port', process.env.PORT || 3000)
 var port = app.get('port')
-app.listen(app.get('port'), () => {
+var server = app.listen(app.get('port'), () => {
   console.log('server running on ' + port);
+})
+
+
+const io = require('socket.io')(server)
+const users = []
+
+io.on('connection', (socket) => {
+  socket.on('login', data => {
+    if (users.indexOf(data.name) > -1) {
+      socket.emit('userexisted')
+    } else {
+      users.push(data.name)
+      socket.emit('loginsuccessful')
+    }
+  })
+  socket.emit('fire', {fire: 'hole'})
 })

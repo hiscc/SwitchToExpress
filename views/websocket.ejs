@@ -1,0 +1,73 @@
+  <style media="screen">
+    *{
+      padding: 0;
+      margin: 0;
+    }
+    .container{
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .screen{
+      height: 300px;
+      background-color: #eee;
+    }
+    .nickname{
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .nickname h2{
+      color: #eee;
+      margin-bottom: 15px;
+    }
+  </style>
+
+  <div class="container">
+    <h1>Web 聊天室</h1>
+    <section class="screen">
+      <h3 class="name"></h3>
+    </section>
+    <section class="input-section">
+      <input type="text" name="" value="">
+      <input type="button" name="" value="发送">
+    </section>
+    <section class="nickname">
+      <h2 class="prompt">输入你的昵称开始聊天</h2>
+      <input type="text" id="nickname" value="">
+    </section>
+  </div>
+  <script src="socket.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    const socket = io.connect()
+  // connect 默认 url 参数 为 window.location http://localhost:3000
+    const nick = document.querySelector('.nickname')
+    const nickname = document.querySelector('#nickname')
+    const prompt = document.querySelector('.prompt')
+    const name = document.querySelector('.name')
+
+    nickname.onkeydown = function(e){
+      if (e.which === 13 && nickname.value.trim().length !== 0 ) {
+        // nick.style.display = 'none'
+        socket.emit('login', {name: nickname.value})
+      }
+    }
+
+    socket.on('userexisted', () => {
+      prompt.firstChild.nodeValue = 'user exist'
+    })
+    socket.on('loginsuccessful', () => {
+      nick.style.display = 'none'
+    })
+
+  </script>

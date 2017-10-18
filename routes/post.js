@@ -59,7 +59,7 @@ router.get('/search', (req, res) => {
       return
     }
     // res.json(posts)
-    res.render('index', {posts: posts, post: undefined, tags: undefined})
+    res.render('index', {posts: posts, post: undefined, tags: undefined, pages: undefined})
   })
 })
 
