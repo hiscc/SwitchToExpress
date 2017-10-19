@@ -12,6 +12,7 @@
     .screen{
       height: 300px;
       background-color: #eee;
+      overflow: auto;
     }
     .nickname{
       width: 100%;
@@ -35,12 +36,14 @@
 
   <div class="container">
     <h1>Web 聊天室</h1>
-    <section class="screen">
-      <h3 class="name"></h3>
-    </section>
+      <section class="screen">
+        <h3 class="status"></h3>
+      </section>
+
     <section class="input-section">
-      <input type="text" name="" value="">
-      <input type="button" name="" value="发送">
+      <input type="text" name="" value="" class="input">
+      <input type="button" name="" value="发送" class="btn">
+      <input type="file"  class="img">
     </section>
     <section class="nickname">
       <h2 class="prompt">输入你的昵称开始聊天</h2>
@@ -51,10 +54,14 @@
   <script type="text/javascript">
     const socket = io.connect()
   // connect 默认 url 参数 为 window.location http://localhost:3000
+    const screen = document.querySelector('.screen')
     const nick = document.querySelector('.nickname')
     const nickname = document.querySelector('#nickname')
     const prompt = document.querySelector('.prompt')
-    const name = document.querySelector('.name')
+    const status = document.querySelector('.status')
+    const input = document.querySelector('.input')
+    const btn = document.querySelector('.btn')
+    const img = document.querySelector('.img')
 
     nickname.onkeydown = function(e){
       if (e.which === 13 && nickname.value.trim().length !== 0 ) {
@@ -62,12 +69,81 @@
         socket.emit('login', {name: nickname.value})
       }
     }
+    btn.addEventListener('click', (e) => {
+      if (input.value.trim().length !== 0 ) {
+        const msg = input.value
+        const user = 'me'
+        pushMsg(user, msg)
+        socket.emit('postMsg', msg)
+        screen.scrollTop = screen.scrollHeight -300
+      }
+    })
+    input.onkeydown = (e) => {
+      if (e.which === 13 && input.value.trim().length !== 0 ) {
+        const msg = input.value
+        const user = 'me'
+        pushMsg(user, msg)
+        socket.emit('postMsg', msg)
+        input.value = ''
+        screen.scrollTop = screen.scrollHeight -300
+      }
+    }
+
+    img.addEventListener('change', (e) => {
+      const that = e.target
+      if (that.files.length != 0) {
+         var file = that.files[0]
+         var reader = new FileReader()
+         if (!reader) {
+             pushMsg('system', '!your browser doesn\'t support fileReader')
+             that.value = '';
+             return;
+         };
+         reader.onload = function(e) {
+             that.value = '';
+             socket.emit('postImg', e.target.result);
+             pushImg('me', e.target.result);
+             screen.scrollTop = screen.scrollHeight -300
+         };
+         reader.readAsDataURL(file);
+     };
+    })
 
     socket.on('userexisted', () => {
       prompt.firstChild.nodeValue = 'user exist'
     })
     socket.on('loginsuccessful', () => {
+      document.title = `hi ${nickname.value}`
       nick.style.display = 'none'
+      status.innerHTML = `Welcome ${nickname.value}`
+    })
+    socket.on('system', (nickname, userCount, type) => {
+      var msg = `<span style="color:#0f0"> ${nickname} </span> ${ type == 'login'? 'joined': 'left'}`
+      var p = document.createElement('p')
+      p.innerHTML = msg
+      screen.appendChild(p)
+      status.textContent = `there are ${userCount} ${userCount > 1?'users': 'user'}`
     })
 
+    socket.on('newMsg', (user, msg) => {
+      pushMsg(user, msg)
+    })
+    socket.on('newImg', (user, img) => {
+      pushImg(user, img)
+    })
+
+    const pushMsg = function(user, msg){
+      const date = new Date().toTimeString().substr(0, 8);
+      const p = document.createElement('p')
+      p.innerHTML = `${date}  <span style="color:#0f0">${user} :</span>  ${msg}`
+      screen.appendChild(p)
+      screen.scrollTop = screen.scrollHeight -300
+    }
+    const pushImg = function(user, img){
+      const date = new Date().toTimeString().substr(0, 8);
+      const p = document.createElement('p')
+      p.innerHTML = `${date}  <span style="color:#0f0">${user} :</span>  <img style="width: 160px" src="${img}">`
+      screen.appendChild(p)
+      screen.scrollTop = screen.scrollHeight -300
+    }
   </script>

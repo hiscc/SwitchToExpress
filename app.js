@@ -102,8 +102,21 @@ io.on('connection', (socket) => {
       socket.emit('userexisted')
     } else {
       users.push(data.name)
+      // socket.nickname 为当前 socket 确定当前用户， 便于记录 user
+      socket.nickname = data.name
+      socket.index = users.length
       socket.emit('loginsuccessful')
+      io.sockets.emit('system', data.name, users.length, 'login');
     }
   })
-  socket.emit('fire', {fire: 'hole'})
+  socket.on('postMsg', function(msg) {
+      socket.broadcast.emit('newMsg', socket.nickname, msg);
+   });
+   socket.on('postImg', function(img) {
+       socket.broadcast.emit('newImg', socket.nickname, img);
+    });
+  socket.on('disconnect', () => {
+    users.splice(socket.index-1, 1)
+    io.sockets.emit('system', socket.nickname, users.length, 'logout');
+  })
 })
