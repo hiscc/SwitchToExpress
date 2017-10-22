@@ -8,6 +8,11 @@
 1. [文件上传， 为用户添加图库](https://github.com/hiscc/SwitchToExpress/tree/images)  ``git checkout images``
 1. [初探 WebSockets， 实时聊天室 ](https://github.com/hiscc/SwitchToExpress/tree/websocket)  ``git checkout websocket``
 
+``npm install nodemon -g && npm install && npm run s``
+  
+或者
+
+``npm install && node app``  
 ****
 在本节我们主要实现 Express 基本的操作
 
