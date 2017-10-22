@@ -103,5 +103,3 @@ socket.on('newMsg', (user, msg) => {
 
 >[Node.js + Web Socket 打造即时聊天程序嗨聊
 ](http://www.cnblogs.com/Wayou/p/hichat_built_with_nodejs_socket.html)
-
->[Mongodb和mongoose模糊查询](https://yuedun.duapp.com/blogdetail/581d736c43c18f1b7ae3e3ff)
