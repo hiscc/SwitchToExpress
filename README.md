@@ -1,19 +1,19 @@
 ## SwitchToExpress
 
 本项目将基于 Express 从零开始搭建一个功能完备的博客系统
-1. [开始， Express 基础及模型基础操作](https://github.com/hiscc/SwitchToExpress/tree/authentication) ``git checkout master``
-1. [注册登录， 用户注册及第三方登录](https://github.com/hiscc/SwitchToExpress/tree/authentication) ``git checkout authentication``
-1. [mongoose 更进一步， 为文章添加标签和评论](https://github.com/hiscc/SwitchToExpress/tree/models)  ``git checkout models``
-1. [文章系统， 文章分页、 排序、 搜索、 多级评论](https://github.com/hiscc/SwitchToExpress/tree/ui)  ``git checkout ui``
-1. [文件上传， 为用户添加图库](https://github.com/hiscc/SwitchToExpress/tree/images)  ``git checkout images``
-1. [初探 WebSockets， 实时聊天室 ](https://github.com/hiscc/SwitchToExpress/tree/websocket)  ``git checkout websocket``
+1\. [开始， Express 基础及模型基础操作](https://github.com/hiscc/SwitchToExpress/tree/authentication) `git checkout master`
+1\. [注册登录， 用户注册及第三方登录](https://github.com/hiscc/SwitchToExpress/tree/authentication) `git checkout authentication`
+1\. [mongoose 更进一步， 为文章添加标签和评论](https://github.com/hiscc/SwitchToExpress/tree/models)  `git checkout models`
+1\. [文章系统， 文章分页、 排序、 搜索、 多级评论](https://github.com/hiscc/SwitchToExpress/tree/ui)  `git checkout ui`
+1\. [文件上传， 为用户添加图库](https://github.com/hiscc/SwitchToExpress/tree/images)  `git checkout images`
+1\. [初探 WebSockets， 实时聊天室 ](https://github.com/hiscc/SwitchToExpress/tree/websocket)  `git checkout websocket`
 
+* * *
 
-****
 在本节我们主要是对 Sequelize 「ORM」的使用进行总结。
 
-1. sequelize 入门、配置
-1. mysql 模型关系及一般使用
+1.  sequelize 入门、配置
+2.  mysql 模型关系及一般使用
 
 ### 基本概念
 
@@ -21,14 +21,14 @@ Sequelize 是一个 ORM 「类比与 rails 端的 Active Record」，主要用�
 
 要使用 sequelize 首先需要安装 sequelize 及相应的数据库包，我们以 mysql 为例：
 
-````js
+```js
 npm install --save sequelize
 npm install --save mysql2
-````
+```
 
 安装好之后，首先需要在本地启动你的数据库，然后即可在程序中配置链接并链接服务。
 
-````js
+```js
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('database', 'username', 'password', {
   // 数据库名称、用户名、密码
@@ -70,7 +70,7 @@ sequelize
   });
 
 // 用于测试数据库的连接是否正常
-````
+```
 
 #### 模型
 
@@ -86,8 +86,7 @@ sequelize
 
 sequelize 有两种方法来建立一对一关系，区别于外键在主语还是宾语上
 
-````js
-
+```js
 Person.hasOne(Team)
 
 // team 表里有 personId
@@ -95,12 +94,11 @@ Person.hasOne(Team)
 Person.belongsTo(Team)
 
 // person 表里有 teamId
-````
+```
 
 ###### 多对一、一对多
 
-````js
-
+```js
 Team.hasMany(Person)
 
 // Person 表内有 teamId
@@ -115,7 +113,7 @@ team.createPerson({name: 'abc'})
 team.addPerson(personId: 1)
 
 Person.create({name: 'abc', teamId: 1})
-````
+```
 
 ###### 多对多
 
@@ -123,13 +121,12 @@ Person.create({name: 'abc', teamId: 1})
 
 创建多对多关系需要一个第三方模型，这个第三方模型记录着多与多的关系。 例如一个命名为 postTag 的第三方模型，它有两个列，一个列记录着 postId，另一个列记录着 tagId。 在这个三方表内可能有如下几条记录：
 
-1. personId 1 tagId 1
-1. personId 1 tagId 2
-1. personId 2 tagId 1
-1. personId 2 tagId 2
+1.  personId 1 tagId 1
+2.  personId 1 tagId 2
+3.  personId 2 tagId 1
+4.  personId 2 tagId 2
 
-````js
-
+```js
 Post.belongsToMany(Tag, {through: postTag})
 Tag.belongsToMany(Post, {through: postTag})
 
@@ -141,15 +138,24 @@ Post.createTag({title: 'js'})
 
 Post.removeTag(tagId)
 Post.getTags()
-````
+```
 
 实例上会有很多相关的方法用于操作相关联的模型， 具体可查询[文档](http://docs.sequelizejs.com/class/lib/associations/belongs-to-many.js~BelongsToMany.html)
 
 ##### 模型操作
 
-模型有的操作有定义、使用、查询。
+模型的操作有定义、使用、查询。
 
-````js
+当你在 node 中更新模型时，数据库内的表还未同步，会出现 can‘t find field xx 的错误提示，所以在路由内的第一步我们需要对模型和表同步。
+
+```js
+sequelize.sync().then(() => {
+  // 同步模型和表后再进行模型操作
+  return Models.User.create({name: 'abc'}) .....
+  })
+```
+
+```js
 const Task = sequelize.define('task', {
   flag: {type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
   myDate: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
@@ -159,10 +165,29 @@ const Task = sequelize.define('task', {
     get() {
       const title = this.getDataValue('flag');
       // 'this' allows you to access attributes of the instance
-      return this.getDataValue('name') + ' (' + title + ')';
+      return this.getDataValue('name') + ' (' + flag + ')';
     },
   },
 })
 
+Task.create({flag: true, name: 'do work'}).then((task) => {
+  task.get('name') // do work (true)
+})
 
-````
+Task.findAll().then(tasks => {
+  console.log(tasks)
+})
+
+// 更加详细的内容请查阅 sequelize 文档 http://docs.sequelizejs.com/manual/tutorial/querying.html
+```
+
+##### 模型组织
+
+一个项目必然有许多模型，首先我们需要定义模型，然后再关联模型，这样模型才算完整。在 sequelize 中，我个人以文件为单元建立模型。例如：models/user.js、 models/post.js， 然后把模型导出，汇总到 models/index.js 「index.js 内主要用于链接数据库、关联模型关系」内确定模型关系， 再次导出模型，然后在控制器内使用。
+
+![配置 sequelize 链接](imgs/1.png)
+![确立模型关系并导出](imgs/2.png)
+
+##### 其它
+
+暂时遇到的问题就这么多了，待补充  🙃
