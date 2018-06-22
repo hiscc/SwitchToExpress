@@ -1,12 +1,13 @@
 ## SwitchToExpress
 
 本项目将基于 Express 从零开始搭建一个功能完备的博客系统
-1\. [开始， Express 基础及模型基础操作](https://github.com/hiscc/SwitchToExpress/tree/authentication) `git checkout master`
-1\. [注册登录， 用户注册及第三方登录](https://github.com/hiscc/SwitchToExpress/tree/authentication) `git checkout authentication`
-1\. [mongoose 更进一步， 为文章添加标签和评论](https://github.com/hiscc/SwitchToExpress/tree/models)  `git checkout models`
-1\. [文章系统， 文章分页、 排序、 搜索、 多级评论](https://github.com/hiscc/SwitchToExpress/tree/ui)  `git checkout ui`
-1\. [文件上传， 为用户添加图库](https://github.com/hiscc/SwitchToExpress/tree/images)  `git checkout images`
-1\. [初探 WebSockets， 实时聊天室 ](https://github.com/hiscc/SwitchToExpress/tree/websocket)  `git checkout websocket`
+1. [开始， Express 基础及模型基础操作](https://github.com/hiscc/SwitchToExpress/tree/authentication) `git checkout master`
+1. [注册登录， 用户注册及第三方登录](https://github.com/hiscc/SwitchToExpress/tree/authentication) `git checkout authentication`
+1. [mongoose 更进一步， 为文章添加标签和评论](https://github.com/hiscc/SwitchToExpress/tree/models)  `git checkout models`
+1. [文章系统， 文章分页、 排序、 搜索、 多级评论](https://github.com/hiscc/SwitchToExpress/tree/ui)  `git checkout ui`
+1. [文件上传， 为用户添加图库](https://github.com/hiscc/SwitchToExpress/tree/images)  `git checkout images`
+1. [初探 WebSockets， 实时聊天室 ](https://github.com/hiscc/SwitchToExpress/tree/websocket)  `git checkout websocket`
+1. [操作 mysql， sequelize 预览 ](https://github.com/hiscc/SwitchToExpress/tree/sequelize)  `git checkout sequelize`
 
 * * *
 
